@@ -1,5 +1,5 @@
 """Modelo de Clase"""
-from sqlalchemy import Integer, String, Text, ForeignKey, Table, Column
+from sqlalchemy import Integer, String, Text, Table, Column, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List
 from src.config.database import db

@@ -1,6 +1,6 @@
 """Modelo de Socio"""
-from sqlalchemy import Integer, String, Enum
-from sqlalchemy.orm import Mapped, mapped_column, relationship, ForeignKey
+from sqlalchemy import Integer, String, Enum, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List, Optional
 from src.config.database import db
 from src.utils.enums import RolUsuario, EstadoMembresia

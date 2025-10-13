@@ -1,5 +1,5 @@
 """Modelo de Solicitud de Baja"""
-from sqlalchemy import Integer, ForeignKey, Text, DateTime, Enum
+from sqlalchemy import Integer, Text, DateTime, Enum, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from src.config.database import db

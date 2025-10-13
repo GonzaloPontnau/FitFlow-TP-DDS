@@ -1,5 +1,5 @@
 """Modelo de Reserva"""
-from sqlalchemy import Integer, ForeignKey, DateTime, Boolean
+from sqlalchemy import Integer, DateTime, Boolean, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from src.config.database import db
