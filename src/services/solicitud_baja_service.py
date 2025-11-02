@@ -37,11 +37,16 @@ class SolicitudBajaService:
         if self.solicitud_repo.tiene_solicitud_pendiente(socio_id):
             raise ValueError("El socio ya tiene una solicitud de baja pendiente")
         
-        # Validar justificación
-        if len(justificacion.strip()) < LONGITUD_MINIMA_SOLICITUD_BAJA:
+        # Validar justificación usando el validador compuesto
+        from src.validators.solicitud_validator import ValidadorCompuesto
+        validador = ValidadorCompuesto()
+        
+        if not validador.es_valida(justificacion):
+            # Rechazo automático - la solicitud no cumple los criterios mínimos
             raise ValueError(
-                f"La justificación debe tener al menos "
-                f"{LONGITUD_MINIMA_SOLICITUD_BAJA} caracteres"
+                f"La justificación no cumple con los criterios mínimos. "
+                f"Debe tener al menos {LONGITUD_MINIMA_SOLICITUD_BAJA} caracteres "
+                f"y contener texto significativo."
             )
         
         # Crear la solicitud

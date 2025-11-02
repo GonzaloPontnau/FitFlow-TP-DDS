@@ -49,6 +49,10 @@ class Socio(db.Model):
         "SolicitudBaja",
         back_populates="socio"
     )
+    pagos: Mapped[List["Pago"]] = relationship(
+        "Pago",
+        back_populates="socio"
+    )
     
     def __init__(self, nombre: str, apellido: str, dni: str, email: str,
                  plan_membresia: Optional["PlanMembresia"] = None):
