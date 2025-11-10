@@ -53,6 +53,10 @@ class Socio(db.Model):
         "Pago",
         back_populates="socio"
     )
+    lista_espera: Mapped[List["ListaEspera"]] = relationship(
+        "ListaEspera",
+        back_populates="socio"
+    )
     
     def __init__(self, nombre: str, apellido: str, dni: str, email: str,
                  plan_membresia: Optional["PlanMembresia"] = None):

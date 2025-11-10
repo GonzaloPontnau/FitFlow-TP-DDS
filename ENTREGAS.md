@@ -106,45 +106,91 @@ Sistema de Gestión Integral para Gimnasios - Trabajo Práctico Anual Integrador
 - Modelar un servicio agregador
 
 ### Alcance
-- **Servicio Agregador de Horarios**
-- **Gestión de Cupos y Listas de Espera**
-- **Exposición de una API REST propia**
+- ✅ **Servicio Agregador de Horarios**
+- ✅ **Gestión de Cupos y Listas de Espera**
+- ✅ **Exposición de una API REST propia**
 
 ### Funcionalidades a Implementar
 
 #### 1. Servicio de Agregación de Horarios
-- Consolidar horarios de clases propias (fuente dinámica)
-- Consolidar talleres externos (fuentes proxy)
-- Actualización automática cada hora del calendario consolidado
-- Vista única unificada
+- ✅ Consolidar horarios de clases propias (fuente dinámica)
+- ✅ Consolidar talleres externos (fuentes proxy)
+- ✅ Actualización automática cada hora del calendario consolidado
+- ✅ Vista única unificada
 
 #### 2. Modos de Visualización del Calendario
-- **Modo Normal:** Mostrar solo clases con cupo disponible
-- **Modo Ocupado:** Mostrar también clases sin cupo
+- ✅ **Modo Normal:** Mostrar solo clases con cupo disponible
+- ✅ **Modo Ocupado:** Mostrar también clases sin cupo
 
 #### 3. Gestión de Listas de Espera
-- Configuración de lista de espera al crear una clase
-- Inscripción en lista de espera cuando no hay cupo
-- Notificación automática al liberarse un lugar
-- Tiempo limitado para confirmar lugar
-- Proceso asincrónico en horarios de baja carga (noche)
+- ✅ Configuración de lista de espera al crear una clase
+- ✅ Inscripción en lista de espera cuando no hay cupo
+- ✅ Notificación automática al liberarse un lugar
+- ✅ Tiempo limitado para confirmar lugar
+- ✅ Proceso asincrónico en horarios de baja carga (noche)
 
 #### 4. API REST
 **API Administrativa:**
-- CRUD completo sobre Clases y Planes
-- Agregar/quitar clases de un plan
-- Aprobar/denegar solicitudes de baja
+- ✅ CRUD completo sobre Clases y Planes
+- ✅ Agregar/quitar clases de un plan
+- ✅ Aprobar/denegar solicitudes de baja
 
 **API Pública para Socios:**
-- Consulta de clases dentro de un plan
-- Generar reserva para una clase
-- Navegación filtrada sobre el calendario
+- ✅ Consulta de clases dentro de un plan
+- ✅ Generar reserva para una clase
+- ✅ Navegación filtrada sobre el calendario
 
 ### Requerimientos
-1. Como **socio**, deseo elegir si ver todas las clases o solo las con cupo
-2. Como **administrador**, quiero asociar una lista de espera a una clase
-3. Como **administrador**, quiero modificar las clases incluidas en un plan
-4. El sistema debe permitir operaciones a través de endpoints REST
+1. ✅ Como **socio**, deseo elegir si ver todas las clases o solo las con cupo
+2. ✅ Como **administrador**, quiero asociar una lista de espera a una clase
+3. ✅ Como **administrador**, quiero modificar las clases incluidas en un plan
+4. ✅ El sistema debe permitir operaciones a través de endpoints REST
+
+### Implementación
+
+#### Nuevos Modelos
+- `ListaEspera`: Gestión de inscripciones en lista de espera con notificaciones y confirmaciones
+
+#### Nuevos Servicios
+- `AgregadorHorariosService`: Consolida calendario de múltiples fuentes
+- `ListaEsperaService`: Gestiona listas de espera, notificaciones y asignación de lugares
+- `TaskScheduler`: Programador de tareas asincrónicas (APScheduler)
+
+#### Nuevos Endpoints REST
+
+**Clases (`/api/clases`)**
+- `POST /api/clases` - Crear clase
+- `PUT /api/clases/:id` - Actualizar clase
+- `DELETE /api/clases/:id` - Eliminar clase
+- `POST /api/clases/:id/lista-espera` - Habilitar lista de espera
+- `DELETE /api/clases/:id/lista-espera` - Deshabilitar lista de espera
+- `GET /api/clases/:id/lista-espera` - Ver lista de espera
+
+**Planes (`/api/planes`)**
+- `GET /api/planes` - Listar planes
+- `GET /api/planes/:id` - Obtener plan
+- `POST /api/planes` - Crear plan
+- `PUT /api/planes/:id` - Actualizar plan
+- `DELETE /api/planes/:id` - Eliminar plan
+- `POST /api/planes/:id/clases/:clase_id` - Agregar clase al plan
+- `DELETE /api/planes/:id/clases/:clase_id` - Quitar clase del plan
+
+**Solicitudes de Baja (`/api/solicitudes`)**
+- `GET /api/solicitudes` - Listar solicitudes pendientes
+- `GET /api/solicitudes/:id` - Obtener solicitud
+- `POST /api/solicitudes` - Crear solicitud
+- `PUT /api/solicitudes/:id/aprobar` - Aprobar solicitud
+- `PUT /api/solicitudes/:id/rechazar` - Rechazar solicitud
+- `GET /api/solicitudes/socio/:id` - Solicitudes de un socio
+
+**Calendario (`/api/calendario`)**
+- `GET /api/calendario?modo=normal|ocupado` - Calendario consolidado
+- `GET /api/calendario/estadisticas` - Estadísticas del calendario
+- `POST /api/calendario/actualizar` - Forzar actualización
+
+#### Tareas Asincrónicas
+- **Procesamiento de lista de espera**: 2:00 AM diariamente
+- **Actualización de calendario**: Cada hora en punto
 
 ---
 
@@ -292,7 +338,7 @@ Generar periódicamente estadísticas para responder:
 |---------|--------|----------|
 | Entrega 1 | ✅ Completada | 100% |
 | Entrega 2 | ✅ Completada | 100% |
-| Entrega 3 | 🔄 En Progreso | 0% |
+| Entrega 3 | ✅ Completada | 100% |
 | Entrega 4 | ⏳ Pendiente | 0% |
 | Entrega 5 | ⏳ Pendiente | 0% |
 | Entrega 6 | ⏳ Pendiente | 0% |
@@ -312,7 +358,8 @@ Generar periódicamente estadísticas para responder:
 ### Entrega 3
 - Flask REST API
 - JSON serialización
-- Tareas asincrónicas (Celery/APScheduler)
+- Tareas asincrónicas (APScheduler)
+- Scheduler de tareas programadas
 
 ### Entrega 4
 - PostgreSQL (producción)

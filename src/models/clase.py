@@ -1,5 +1,5 @@
 """Modelo de Clase"""
-from sqlalchemy import Integer, String, Text, Table, Column, ForeignKey
+from sqlalchemy import Integer, String, Text, Table, Column, ForeignKey, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List
 from src.config.database import db
@@ -27,7 +27,8 @@ class Clase(db.Model):
     titulo: Mapped[str] = mapped_column(String(100), nullable=False)
     descripcion: Mapped[str] = mapped_column(Text, nullable=False)
     cupo_maximo: Mapped[int] = mapped_column(Integer, nullable=False)
-    activa: Mapped[bool] = mapped_column(default=True)
+    activa: Mapped[bool] = mapped_column(Boolean, default=True)
+    tiene_lista_espera: Mapped[bool] = mapped_column(Boolean, default=False)
     
     # Foreign Keys
     entrenador_id: Mapped[int] = mapped_column(
@@ -56,6 +57,11 @@ class Clase(db.Model):
         "Reserva",
         back_populates="clase"
     )
+    lista_espera: Mapped[List["ListaEspera"]] = relationship(
+        "ListaEspera",
+        back_populates="clase",
+        order_by="ListaEspera.posicion"
+    )
     
     def __init__(self, titulo: str, descripcion: str, cupo_maximo: int,
                  entrenador: "Entrenador", horario: "Horario"):
@@ -78,6 +84,7 @@ class Clase(db.Model):
         self.entrenador = entrenador
         self.horario = horario
         self.activa = True
+        self.tiene_lista_espera = False
     
     def cupos_disponibles(self) -> int:
         """Retorna la cantidad de cupos disponibles"""

@@ -3,7 +3,10 @@ from flask import Flask, jsonify
 from src.config.database import init_db
 from src.config.settings import settings
 from src.core.logging_config import setup_logging, get_logger
-from src.api.controllers import socio_bp, clase_bp, reserva_bp, pago_bp
+from src.api.controllers import (
+    socio_bp, clase_bp, reserva_bp, pago_bp, 
+    plan_bp, solicitud_bp, calendario_bp
+)
 from src.exceptions.base_exceptions import FitFlowException
 
 # Configurar logging
@@ -42,7 +45,19 @@ def create_app():
     app.register_blueprint(clase_bp)
     app.register_blueprint(reserva_bp)
     app.register_blueprint(pago_bp)
+    app.register_blueprint(plan_bp)
+    app.register_blueprint(solicitud_bp)
+    app.register_blueprint(calendario_bp)
     logger.info("Controladores REST registrados")
+    
+    # Configurar tareas programadas (scheduler)
+    try:
+        from src.config.scheduler import configurar_tareas_programadas
+        scheduler = configurar_tareas_programadas(app)
+        logger.info("Tareas asincrónicas configuradas")
+    except Exception as e:
+        logger.warning(f"No se pudieron configurar tareas asincrónicas: {e}")
+        logger.warning("La aplicación continuará sin scheduler")
     
     # Manejador global de errores
     @app.errorhandler(FitFlowException)
@@ -80,13 +95,16 @@ def create_app():
         """Endpoint raíz con información de la API"""
         return jsonify({
             'message': 'FitFlow API - Sistema de Gestión para Gimnasios',
-            'version': '2.0.0',
+            'version': '3.0.0',
             'status': 'active',
             'endpoints': {
                 'socios': '/api/socios',
                 'clases': '/api/clases',
                 'reservas': '/api/reservas',
                 'pagos': '/api/pagos',
+                'planes': '/api/planes',
+                'solicitudes': '/api/solicitudes',
+                'calendario': '/api/calendario',
                 'health': '/health'
             }
         })
@@ -96,7 +114,7 @@ def create_app():
         """Endpoint para verificar el estado del servicio"""
         return jsonify({
             'status': 'healthy',
-            'version': '2.0.0',
+            'version': '3.0.0',
             'database': 'connected'
         })
     

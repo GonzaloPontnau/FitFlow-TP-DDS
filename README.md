@@ -82,6 +82,15 @@ python -m pytest --cov=src --cov-report=html
 - Integración con API de Clases Externas (simulada)
 - Validación automática de solicitudes
 
+### Entrega 3 ✅
+- **API REST Completa**: CRUD de Clases, Planes y Solicitudes
+- **Servicio Agregador**: Calendario consolidado de múltiples fuentes
+- **Listas de Espera**: Gestión automática con notificaciones
+- **Tareas Asincrónicas**: Procesamiento nocturno con APScheduler
+- **Modos de Visualización**: Normal (solo con cupo) y Ocupado (todas)
+
+Ver [ENTREGA3.md](ENTREGA3.md) para documentación detallada de la Entrega 3.
+
 ### Próximas Entregas
 Ver [ENTREGAS.md](ENTREGAS.md) para detalles completos.
 
@@ -108,6 +117,7 @@ src/
 - **Backend:** Python 3.10+, Flask 3.0.0
 - **ORM:** SQLAlchemy
 - **Base de Datos:** SQLite (dev)
+- **Scheduler:** APScheduler 3.10+
 - **Testing:** Pytest
 - **Procesamiento:** Pandas
 

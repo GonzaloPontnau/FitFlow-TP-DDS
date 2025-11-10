@@ -8,6 +8,7 @@ from .reserva import Reserva
 from .solicitud_baja import SolicitudBaja
 from .pago import Pago, EstadoPago
 from .clase_externa import ClaseExterna
+from .lista_espera import ListaEspera
 
 __all__ = [
     'PlanMembresia',
@@ -20,5 +21,6 @@ __all__ = [
     'Pago',
     'EstadoPago',
     'ClaseExterna',
+    'ListaEspera',
     'plan_clase_association'
 ]

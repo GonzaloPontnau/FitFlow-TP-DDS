@@ -72,6 +72,10 @@ class BusinessRuleException(FitFlowException):
         )
 
 
+# Alias para compatibilidad
+BusinessException = BusinessRuleException
+
+
 class ExternalServiceException(FitFlowException):
     """
     Excepción para errores en servicios externos.

@@ -98,10 +98,10 @@ class PagoDTO:
     monto: float
     estado: str
     fecha_pago: datetime
-    referencia_externa: Optional[str] = None
-    fecha_verificacion: Optional[datetime] = None
     mes_periodo: int
     anio_periodo: int
+    referencia_externa: Optional[str] = None
+    fecha_verificacion: Optional[datetime] = None
 
 
 @dataclass
