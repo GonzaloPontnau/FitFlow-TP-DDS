@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - FitFlow{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2 class="card-title">Panel de Control</h2>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">
+        Bienvenido al sistema de gestión FitFlow. Aquí puedes administrar socios, clases, planes y reservas.
+    </p>
+</div>
+
+<!-- Estadísticas -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value" id="total-socios">-</div>
+        <div class="stat-label">Total Socios</div>
+    </div>
+    <div class="stat-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+        <div class="stat-value" id="total-clases">-</div>
+        <div class="stat-label">Clases Disponibles</div>
+    </div>
+    <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+        <div class="stat-value" id="total-reservas">-</div>
+        <div class="stat-label">Reservas Activas</div>
+    </div>
+    <div class="stat-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+        <div class="stat-value" id="total-planes">-</div>
+        <div class="stat-label">Planes de Membresía</div>
+    </div>
+</div>
+
+<!-- Accesos rápidos -->
+<div class="card">
+    <h3 class="card-title">Accesos Rápidos</h3>
+    <div class="grid">
+        <div class="grid-item">
+            <h4>Gestión de Socios</h4>
+            <p style="color: var(--text-muted); margin: 1rem 0;">
+                Administra los socios del gimnasio, crea nuevos perfiles y actualiza información.
+            </p>
+            <a href="/socios" class="btn btn-primary">Ver Socios</a>
+        </div>
+        
+        <div class="grid-item">
+            <h4>Clases</h4>
+            <p style="color: var(--text-muted); margin: 1rem 0;">
+                Gestiona las clases del gimnasio, horarios y disponibilidad.
+            </p>
+            <a href="/clases" class="btn btn-primary">Ver Clases</a>
+        </div>
+        
+        <div class="grid-item">
+            <h4>Planes de Membresía</h4>
+            <p style="color: var(--text-muted); margin: 1rem 0;">
+                Administra los diferentes planes de membresía disponibles.
+            </p>
+            <a href="/planes" class="btn btn-primary">Ver Planes</a>
+        </div>
+        
+        <div class="grid-item">
+            <h4>Reservas</h4>
+            <p style="color: var(--text-muted); margin: 1rem 0;">
+                Gestiona las reservas de clases realizadas por los socios.
+            </p>
+            <a href="/reservas" class="btn btn-primary">Ver Reservas</a>
+        </div>
+        
+        <div class="grid-item">
+            <h4>Calendario</h4>
+            <p style="color: var(--text-muted); margin: 1rem 0;">
+                Visualiza el calendario consolidado de todas las clases.
+            </p>
+            <a href="/calendario" class="btn btn-primary">Ver Calendario</a>
+        </div>
+        
+        <div class="grid-item">
+            <h4>API REST</h4>
+            <p style="color: var(--text-muted); margin: 1rem 0;">
+                Accede a la documentación de la API REST del sistema.
+            </p>
+            <a href="/health" class="btn btn-secondary" target="_blank">Estado API</a>
+        </div>
+    </div>
+</div>
+
+<!-- Información del Sistema -->
+<div class="card">
+    <h3 class="card-title">Información del Sistema</h3>
+    <div id="system-info">
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Cargando información...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Cargar estadísticas
+async function loadStats() {
+    try {
+        // Cargar socios
+    const sociosData = await apiRequest('/api/socios');
+    document.getElementById('total-socios').textContent = (sociosData.data?.length) || 0;
+        
+        // Cargar clases
+    const clasesData = await apiRequest('/api/clases');
+    document.getElementById('total-clases').textContent = (clasesData.data?.length) || 0;
+        
+        // Cargar reservas
+    const reservasData = await apiRequest('/api/reservas');
+    document.getElementById('total-reservas').textContent = (reservasData.data?.length) || 0;
+        
+        // Cargar planes
+    const planesData = await apiRequest('/api/planes');
+    document.getElementById('total-planes').textContent = (planesData.data?.length) || 0;
+    } catch (error) {
+        console.error('Error cargando estadísticas:', error);
+        document.getElementById('total-socios').textContent = '!';
+        document.getElementById('total-clases').textContent = '!';
+        document.getElementById('total-reservas').textContent = '!';
+        document.getElementById('total-planes').textContent = '!';
+    }
+}
+
+// Cargar información del sistema
+async function loadSystemInfo() {
+    try {
+    const data = await apiRequest('/api');
+        const info = document.getElementById('system-info');
+        
+        info.innerHTML = `
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                <div>
+                    <strong>Versión:</strong> ${data.version}
+                </div>
+                <div>
+                    <strong>Estado:</strong> 
+                    <span class="badge badge-success">${data.status}</span>
+                </div>
+                <div>
+                    <strong>API Base:</strong> 
+                    <code>${window.location.origin}</code>
+                </div>
+            </div>
+            <div style="margin-top: 1.5rem;">
+                <strong>Endpoints disponibles:</strong>
+                <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                    ${Object.entries(data.endpoints).map(([name, path]) => 
+                        `<li><code>${path}</code> - ${name}</li>`
+                    ).join('')}
+                </ul>
+            </div>
+        `;
+    } catch (error) {
+        const info = document.getElementById('system-info');
+        info.innerHTML = '<div class="alert alert-error">Error al cargar información del sistema</div>';
+    }
+}
+
+// Cargar datos al iniciar
+document.addEventListener('DOMContentLoaded', () => {
+    loadStats();
+    loadSystemInfo();
+});
+</script>
+{% endblock %}

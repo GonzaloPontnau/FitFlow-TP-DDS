@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Socios - FitFlow{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Gestión de Socios</h2>
+        <button class="btn btn-primary" onclick="openModal('modalNuevoSocio')">
+            Nuevo Socio
+        </button>
+    </div>
+    
+    <div id="socios-list">
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Cargando socios...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nuevo Socio -->
+<div id="modalNuevoSocio" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Nuevo Socio</h3>
+            <button class="modal-close" onclick="closeModal('modalNuevoSocio')">&times;</button>
+        </div>
+        <form id="formNuevoSocio" onsubmit="crearSocio(event)">
+            <div class="form-group">
+                <label>Nombre *</label>
+                <input type="text" name="nombre" required>
+            </div>
+            <div class="form-group">
+                <label>Apellido *</label>
+                <input type="text" name="apellido" required>
+            </div>
+            <div class="form-group">
+                <label>DNI *</label>
+                <input type="text" name="dni" required>
+            </div>
+            <div class="form-group">
+                <label>Email *</label>
+                <input type="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label>Plan de Membresía *</label>
+                <select name="plan_membresia_id" id="planSelect" required>
+                    <option value="">Seleccione un plan...</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Crear Socio</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Cargar planes para el select
+async function cargarPlanes() {
+    try {
+        const data = await apiRequest('/api/planes');
+        const select = document.getElementById('planSelect');
+        select.innerHTML = '<option value="">Seleccione un plan...</option>';
+        
+        // La API devuelve data.data, no data.planes
+        const planes = data.data || [];
+        planes.forEach(plan => {
+            const option = document.createElement('option');
+            option.value = plan.id;
+            option.textContent = `${plan.nombre} - ${formatCurrency(plan.precio)}`;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error cargando planes:', error);
+    }
+}
+
+// Cargar lista de socios
+async function cargarSocios() {
+    try {
+        const data = await apiRequest('/api/socios');
+        const container = document.getElementById('socios-list');
+        
+        // La API devuelve data.data, no data.socios
+        const socios = data.data || [];
+        
+        if (socios.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 2rem;">No hay socios registrados</p>';
+            return;
+        }
+        
+        container.innerHTML = `
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>DNI</th>
+                            <th>Email</th>
+                            <th>Plan</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${socios.map(socio => `
+                            <tr>
+                                <td>${socio.id}</td>
+                                <td>${socio.nombre_completo}</td>
+                                <td>${socio.dni}</td>
+                                <td>${socio.email}</td>
+                                <td>${socio.plan || 'Sin plan'}</td>
+                                <td>
+                                    ${socio.estado_membresia === 'activa'
+                                        ? '<span class="badge badge-success">Activa</span>' 
+                                        : socio.estado_membresia === 'suspendida'
+                                        ? '<span class="badge badge-warning">Suspendida</span>'
+                                        : '<span class="badge badge-danger">Inactiva</span>'}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    } catch (error) {
+        const container = document.getElementById('socios-list');
+        container.innerHTML = '<div class="alert alert-error">Error al cargar socios</div>';
+    }
+}
+
+// Crear nuevo socio
+async function crearSocio(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    const socio = {
+        nombre: formData.get('nombre'),
+        apellido: formData.get('apellido'),
+        dni: formData.get('dni'),
+        email: formData.get('email'),
+        plan_membresia_id: parseInt(formData.get('plan_membresia_id'))
+    };
+    
+    try {
+        await apiRequest('/api/socios', {
+            method: 'POST',
+            body: JSON.stringify(socio)
+        });
+        
+        showAlert('Socio creado exitosamente', 'success');
+        closeModal('modalNuevoSocio');
+        form.reset();
+        cargarSocios();
+    } catch (error) {
+        console.error('Error creando socio:', error);
+    }
+}
+
+// Inicializar
+document.addEventListener('DOMContentLoaded', () => {
+    cargarSocios();
+    cargarPlanes();
+});
+</script>
+{% endblock %}

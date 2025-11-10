@@ -59,8 +59,10 @@ def listar_clases():
                 'descripcion': c.descripcion,
                 'entrenador': c.entrenador.nombre_completo,
                 'dia': c.horario.dia_semana.value,
-                'hora_inicio': c.horario.hora_inicio,
-                'duracion': c.horario.duracion_minutos,
+                # convertir a string para JSON
+                'hora_inicio': c.horario.hora_inicio.strftime('%H:%M'),
+                # corregido: duracion_minutos es un método, debe invocarse
+                'duracion': c.horario.duracion_minutos(),
                 'cupo_maximo': c.cupo_maximo,
                 'cupos_disponibles': c.cupos_disponibles(),
                 'tiene_cupo': c.tiene_cupo_disponible()
@@ -93,7 +95,8 @@ def listar_clases_por_plan(plan_id: int):
                 'titulo': c.titulo,
                 'descripcion': c.descripcion,
                 'dia': c.horario.dia_semana.value,
-                'hora_inicio': c.horario.hora_inicio
+                # convertir a string para JSON
+                'hora_inicio': c.horario.hora_inicio.strftime('%H:%M')
             }
             for c in clases
         ]
@@ -135,8 +138,10 @@ def obtener_clase(clase_id: int):
             },
             'horario': {
                 'dia': clase.horario.dia_semana.value,
-                'hora_inicio': clase.horario.hora_inicio,
-                'duracion_minutos': clase.horario.duracion_minutos
+                # convertir a string para JSON
+                'hora_inicio': clase.horario.hora_inicio.strftime('%H:%M'),
+                # corregido: duracion_minutos es un método, debe invocarse
+                'duracion_minutos': clase.horario.duracion_minutos()
             },
             'cupos': {
                 'maximo': clase.cupo_maximo,

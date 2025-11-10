@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Planes - FitFlow{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Planes de Membresía</h2>
+    </div>
+    
+    <div id="planes-list">
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Cargando planes...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Cargar lista de planes
+async function cargarPlanes() {
+    try {
+        const data = await apiRequest('/api/planes');
+        const container = document.getElementById('planes-list');
+        
+        // La API devuelve data.data, no data.planes
+        const planes = data.data || [];
+        
+        if (planes.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 2rem;">No hay planes disponibles</p>';
+            return;
+        }
+        
+        container.innerHTML = `
+            <div class="grid">
+                ${planes.map(plan => `
+                    <div class="grid-item">
+                        <div style="text-align: center;">
+                            <h3 style="color: var(--primary-color); margin-bottom: 1rem;">
+                                ${plan.nombre}
+                            </h3>
+                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--secondary-color); margin-bottom: 1rem;">
+                                ${formatCurrency(plan.precio)}
+                            </div>
+                            <p style="color: var(--text-muted); margin-bottom: 1.5rem; min-height: 60px;">
+                                ${plan.descripcion || 'Sin descripción'}
+                            </p>
+                            <div style="padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                                <span class="badge badge-info">ID: ${plan.id}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    } catch (error) {
+        const container = document.getElementById('planes-list');
+        container.innerHTML = '<div class="alert alert-error">Error al cargar planes</div>';
+    }
+}
+
+// Inicializar
+document.addEventListener('DOMContentLoaded', () => {
+    cargarPlanes();
+});
+</script>
+{% endblock %}

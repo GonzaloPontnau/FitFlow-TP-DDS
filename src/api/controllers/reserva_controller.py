@@ -11,6 +11,50 @@ reserva_bp = Blueprint('reservas', __name__, url_prefix='/api/reservas')
 reserva_service = ReservaService()
 
 
+@reserva_bp.route('', methods=['GET'])
+@handle_errors
+def listar_reservas():
+    """
+    Lista todas las reservas del sistema.
+    
+    Query params:
+        activas: true/false (default: all)
+    
+    Returns:
+        200: Lista de reservas
+    """
+    solo_activas = request.args.get('activas', '').lower() == 'true'
+    
+    # Obtener todas las reservas
+    from src.repositories.base_repository import BaseRepository
+    from src.models.reserva import Reserva
+    
+    repo = BaseRepository(Reserva)
+    reservas = repo.get_all()
+    
+    # Filtrar por activas si se solicita
+    if solo_activas:
+        reservas = [r for r in reservas if r.esta_activa()]
+    
+    return jsonify({
+        'success': True,
+        'count': len(reservas),
+        'data': [
+            {
+                'id': r.id,
+                'socio_id': r.socio_id,
+                'socio_nombre': r.socio.nombre_completo,
+                'clase_id': r.clase_id,
+                'clase_titulo': r.clase.titulo,
+                'fecha_reserva': r.fecha_reserva.isoformat(),
+                'confirmada': r.confirmada,
+                'fecha_cancelacion': r.fecha_cancelacion.isoformat() if r.fecha_cancelacion else None
+            }
+            for r in reservas
+        ]
+    }), 200
+
+
 @reserva_bp.route('', methods=['POST'])
 @handle_errors
 @validate_json('socio_id', 'clase_id')

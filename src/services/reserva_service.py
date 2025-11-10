@@ -48,7 +48,7 @@ class ReservaService:
             ValueError: Si las validaciones fallan
         """
         # Validar que el socio existe
-        socio = self.socio_repository.find_by_id(socio_id)
+        socio = self.socio_repository.get_by_id(socio_id)
         if not socio:
             return {
                 'success': False,
@@ -65,7 +65,7 @@ class ReservaService:
             }
         
         # Validar que la clase existe
-        clase = self.clase_repository.find_by_id(clase_id)
+        clase = self.clase_repository.get_by_id(clase_id)
         if not clase:
             return {
                 'success': False,
@@ -135,7 +135,7 @@ class ReservaService:
                 - message: mensaje descriptivo del resultado
         """
         # Validar que la reserva existe
-        reserva = self.reserva_repository.find_by_id(reserva_id)
+        reserva = self.reserva_repository.get_by_id(reserva_id)
         if not reserva:
             return {
                 'success': False,
@@ -216,7 +216,7 @@ class ReservaService:
         Returns:
             Objeto Reserva o None si no existe
         """
-        return self.reserva_repository.find_by_id(reserva_id)
+        return self.reserva_repository.get_by_id(reserva_id)
     
     def _tiene_reserva_activa(self, socio_id: int, clase_id: int) -> bool:
         """
@@ -276,7 +276,7 @@ class ReservaService:
                 - cupos_disponibles: int
                 - tiene_cupo: bool
         """
-        clase = self.clase_repository.find_by_id(clase_id)
+        clase = self.clase_repository.get_by_id(clase_id)
         if not clase:
             return {
                 'cupo_maximo': 0,

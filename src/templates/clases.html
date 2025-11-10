@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Clases - FitFlow{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Clases Disponibles</h2>
+        <div>
+            <label style="display: inline-block; margin-right: 1rem;">
+                <input type="checkbox" id="mostrarOcupadas" onchange="cargarClases()">
+                Mostrar clases ocupadas
+            </label>
+        </div>
+    </div>
+    
+    <div id="clases-list">
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Cargando clases...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Cargar lista de clases
+async function cargarClases() {
+    try {
+        const mostrarOcupadas = document.getElementById('mostrarOcupadas').checked;
+        const params = mostrarOcupadas ? '' : '?con_cupo=true';
+        const data = await apiRequest(`/api/clases${params}`);
+        const container = document.getElementById('clases-list');
+        
+        // La API devuelve data.data, no data.clases
+        const clases = data.data || [];
+        
+        if (clases.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 2rem;">No hay clases disponibles</p>';
+            return;
+        }
+        
+        container.innerHTML = `
+            <div class="grid">
+                ${clases.map(clase => {
+                    const cupoDisponible = clase.cupos_disponibles || 0;
+                    const cupoTotal = clase.cupo_maximo || 0;
+                    const cupoOcupado = cupoTotal - cupoDisponible;
+                    const porcentaje = cupoTotal > 0 ? ((cupoOcupado / cupoTotal) * 100).toFixed(0) : 0;
+                    
+                    return `
+                        <div class="grid-item">
+                            <h3 style="margin-bottom: 0.5rem; color: var(--primary-color);">
+                                ${clase.titulo}
+                            </h3>
+                            <p style="color: var(--text-muted); margin-bottom: 1rem;">
+                                ${clase.descripcion || 'Sin descripción'}
+                            </p>
+                            
+                            <div style="margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <span><strong>Entrenador:</strong></span>
+                                    <span>${clase.entrenador || 'N/A'}</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <span><strong>Horario:</strong></span>
+                                    <span>${clase.dia || 'N/A'} ${clase.hora_inicio || ''}</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <span><strong>Duración:</strong></span>
+                                    <span>${clase.duracion || 0} minutos</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <span><strong>Cupo:</strong></span>
+                                    <span>${cupoOcupado} / ${cupoTotal}</span>
+                                </div>
+                                <div style="margin-top: 0.5rem;">
+                                    <div style="background-color: var(--border-color); height: 8px; border-radius: 4px; overflow: hidden;">
+                                        <div style="background-color: ${porcentaje >= 90 ? 'var(--danger-color)' : porcentaje >= 70 ? 'var(--warning-color)' : 'var(--secondary-color)'}; 
+                                                    height: 100%; width: ${porcentaje}%; transition: width 0.3s;"></div>
+                                    </div>
+                                    <small style="color: var(--text-muted);">${porcentaje}% ocupado</small>
+                                </div>
+                            </div>
+                            
+                            ${cupoDisponible > 0 
+                                ? `<span class="badge badge-success">${cupoDisponible} lugares disponibles</span>`
+                                : `<span class="badge badge-danger">Sin cupo</span>`
+                            }
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    } catch (error) {
+        const container = document.getElementById('clases-list');
+        container.innerHTML = '<div class="alert alert-error">Error al cargar clases</div>';
+    }
+}
+
+// Inicializar
+document.addEventListener('DOMContentLoaded', () => {
+    cargarClases();
+});
+</script>
+{% endblock %}

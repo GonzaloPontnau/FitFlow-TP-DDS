@@ -1,5 +1,5 @@
 """Punto de entrada principal de la aplicación FitFlow"""
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 from src.config.database import init_db
 from src.config.settings import settings
 from src.core.logging_config import setup_logging, get_logger
@@ -69,29 +69,70 @@ def create_app():
     @app.errorhandler(404)
     def not_found(error):
         """Maneja errores 404"""
-        return jsonify({
-            'error': {
-                'type': 'NOT_FOUND',
-                'message': 'Recurso no encontrado',
-                'details': {}
-            }
-        }), 404
+        from flask import request
+        # Si es una petición a la API, devolver JSON
+        if request.path.startswith('/api/'):
+            return jsonify({
+                'error': {
+                    'type': 'NOT_FOUND',
+                    'message': 'Recurso no encontrado',
+                    'details': {}
+                }
+            }), 404
+        # Si es una petición web normal, devolver página de error
+        return render_template('index.html'), 404
     
     @app.errorhandler(500)
     def internal_error(error):
         """Maneja errores internos del servidor"""
+        from flask import request
         logger.exception("Error interno del servidor")
-        return jsonify({
-            'error': {
-                'type': 'INTERNAL_ERROR',
-                'message': 'Error interno del servidor',
-                'details': {}
-            }
-        }), 500
+        # Si es una petición a la API, devolver JSON
+        if request.path.startswith('/api/'):
+            return jsonify({
+                'error': {
+                    'type': 'INTERNAL_ERROR',
+                    'message': 'Error interno del servidor',
+                    'details': {}
+                }
+            }), 500
+        # Si es una petición web normal, devolver página de error
+        return render_template('index.html'), 500
     
-    # Endpoints informativos
+    # Rutas Web (templates HTML)
     @app.route('/')
     def index():
+        """Página principal"""
+        return render_template('index.html')
+    
+    @app.route('/socios')
+    def socios_page():
+        """Página de gestión de socios"""
+        return render_template('socios.html')
+    
+    @app.route('/clases')
+    def clases_page():
+        """Página de gestión de clases"""
+        return render_template('clases.html')
+    
+    @app.route('/planes')
+    def planes_page():
+        """Página de planes de membresía"""
+        return render_template('planes.html')
+    
+    @app.route('/reservas')
+    def reservas_page():
+        """Página de gestión de reservas"""
+        return render_template('reservas.html')
+    
+    @app.route('/calendario')
+    def calendario_page():
+        """Página del calendario de clases"""
+        return render_template('calendario.html')
+    
+    # API Endpoints informativos
+    @app.route('/api')
+    def api_info():
         """Endpoint raíz con información de la API"""
         return jsonify({
             'message': 'FitFlow API - Sistema de Gestión para Gimnasios',

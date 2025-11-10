@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Calendario - FitFlow{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Calendario de Clases</h2>
+        <div>
+            <label style="display: inline-block; margin-right: 1rem;">
+                <input type="checkbox" id="incluirExternas" onchange="cargarCalendario()" checked>
+                Incluir clases externas
+            </label>
+        </div>
+    </div>
+    
+    <div id="calendario-content">
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Cargando calendario...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Días de la semana ordenados
+const diasOrdenados = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+// Cargar calendario
+async function cargarCalendario() {
+    try {
+        const incluirExternas = document.getElementById('incluirExternas').checked;
+        const data = await apiRequest(`/api/calendario?incluir_externas=${incluirExternas}`);
+        const container = document.getElementById('calendario-content');
+        
+        if (!data.clases || data.clases.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 2rem;">No hay clases en el calendario</p>';
+            return;
+        }
+        
+        // Agrupar por día
+        const clasesPorDia = {};
+        diasOrdenados.forEach(dia => {
+            clasesPorDia[dia] = [];
+        });
+        
+        data.clases.forEach(clase => {
+            const dia = clase.horario?.dia || clase.dia_semana;
+            if (clasesPorDia[dia]) {
+                clasesPorDia[dia].push(clase);
+            }
+        });
+        
+        // Ordenar por hora
+        Object.keys(clasesPorDia).forEach(dia => {
+            clasesPorDia[dia].sort((a, b) => {
+                const horaA = a.horario?.hora_inicio || a.hora_inicio || '';
+                const horaB = b.horario?.hora_inicio || b.hora_inicio || '';
+                return horaA.localeCompare(horaB);
+            });
+        });
+        
+        container.innerHTML = diasOrdenados.map(dia => {
+            const clases = clasesPorDia[dia];
+            
+            if (clases.length === 0) {
+                return '';
+            }
+            
+            return `
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="color: var(--primary-color); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border-color);">
+                        ${dia}
+                    </h3>
+                    <div class="grid">
+                        ${clases.map(clase => {
+                            const esExterna = clase.fuente === 'externa';
+                            const horaInicio = clase.horario?.hora_inicio || clase.hora_inicio || 'N/A';
+                            const horaFin = clase.horario?.hora_fin || clase.hora_fin || 'N/A';
+                            
+                            return `
+                                <div class="grid-item" style="${esExterna ? 'border-left: 4px solid var(--warning-color);' : ''}">
+                                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                                        <h4 style="color: var(--primary-color); margin: 0;">
+                                            ${clase.nombre}
+                                        </h4>
+                                        ${esExterna 
+                                            ? '<span class="badge badge-warning">Externa</span>'
+                                            : '<span class="badge badge-info">Propia</span>'
+                                        }
+                                    </div>
+                                    
+                                    <p style="color: var(--text-muted); margin-bottom: 1rem;">
+                                        ${clase.descripcion || 'Sin descripción'}
+                                    </p>
+                                    
+                                    <div style="font-size: 0.875rem;">
+                                        <div style="margin-bottom: 0.5rem;">
+                                            <strong>Horario:</strong> ${horaInicio} - ${horaFin}
+                                        </div>
+                                        ${clase.entrenador 
+                                            ? `<div style="margin-bottom: 0.5rem;">
+                                                <strong>Entrenador:</strong> 
+                                                ${clase.entrenador.nombre} ${clase.entrenador.apellido || ''}
+                                               </div>`
+                                            : clase.instructor
+                                                ? `<div style="margin-bottom: 0.5rem;">
+                                                    <strong>Instructor:</strong> ${clase.instructor}
+                                                   </div>`
+                                                : ''
+                                        }
+                                        ${!esExterna && clase.cupo 
+                                            ? `<div style="margin-bottom: 0.5rem;">
+                                                <strong>Cupo:</strong> 
+                                                ${clase.reservas_count || 0} / ${clase.cupo}
+                                               </div>`
+                                            : ''
+                                        }
+                                        ${esExterna && clase.ubicacion
+                                            ? `<div style="margin-bottom: 0.5rem;">
+                                                <strong>Ubicación:</strong> ${clase.ubicacion}
+                                               </div>`
+                                            : ''
+                                        }
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        // Mostrar información de resumen
+        const totalClases = data.clases.length;
+        const clasesExternas = data.clases.filter(c => c.fuente === 'externa').length;
+        const clasesPropias = totalClases - clasesExternas;
+        
+        const resumen = `
+            <div class="alert alert-info" style="margin-bottom: 2rem;">
+                <strong>Resumen:</strong> 
+                ${totalClases} clases totales 
+                (${clasesPropias} propias, ${clasesExternas} externas)
+            </div>
+        `;
+        
+        container.innerHTML = resumen + container.innerHTML;
+        
+    } catch (error) {
+        const container = document.getElementById('calendario-content');
+        container.innerHTML = '<div class="alert alert-error">Error al cargar calendario</div>';
+    }
+}
+
+// Inicializar
+document.addEventListener('DOMContentLoaded', () => {
+    cargarCalendario();
+});
+</script>
+{% endblock %}
