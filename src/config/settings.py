@@ -72,8 +72,17 @@ class Settings:
         )
         
         # Configuración de base de datos
+        # Obtener ruta absoluta para SQLite
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        instance_dir = os.path.join(base_dir, 'src', 'instance')
+        # Crear directorio instance si no existe
+        os.makedirs(instance_dir, exist_ok=True)
+        db_path = os.path.join(instance_dir, 'fitflow.db')
+        # Convertir a formato de URL válido para SQLite (barras forward en Windows)
+        default_db_url = f'sqlite:///{db_path.replace(os.sep, "/")}'
+        
         self.database = DatabaseConfig(
-            url=os.getenv('DATABASE_URL', 'sqlite:///src/instance/fitflow.db'),
+            url=os.getenv('DATABASE_URL', default_db_url),
             echo=os.getenv('DB_ECHO', 'False').lower() == 'true',
             pool_size=int(os.getenv('DB_POOL_SIZE', 5)),
             max_overflow=int(os.getenv('DB_MAX_OVERFLOW', 10))
