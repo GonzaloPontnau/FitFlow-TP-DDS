@@ -131,7 +131,7 @@ class AgregadorHorariosService:
             instructor=clase.entrenador.nombre_completo,
             fecha=fecha,
             hora_inicio=clase.horario.hora_inicio,
-            duracion_minutos=clase.horario.duracion_minutos,
+            duracion_minutos=clase.horario.duracion_minutos(),
             cupo_maximo=clase.cupo_maximo,
             cupos_disponibles=clase.cupos_disponibles(),
             tipo='interna',
