@@ -1,5 +1,6 @@
 import pytest
 import os
+import uuid
 from datetime import time
 from src.main import create_app
 from src.config.database import db
@@ -30,11 +31,14 @@ def client(app):
 def datos(app):
     """Fixture que crea datos de prueba"""
     with app.app_context():
+        # Generar sufijo único
+        suffix = str(uuid.uuid4())[:8]
+        
         # Crear entrenador
         entrenador = Entrenador(
             nombre="Juan",
             apellido="Pérez",
-            email="juan.perez@fitflow.com",
+            email=f"juan.perez.{suffix}@fitflow.com",
             especialidad="Funcional"
         )
         db.session.add(entrenador)
@@ -43,20 +47,20 @@ def datos(app):
         socio1 = Socio(
             nombre="María",
             apellido="González",
-            dni="12345678",
-            email="maria@email.com"
+            dni=f"12{suffix}",
+            email=f"maria.{suffix}@email.com"
         )
         socio2 = Socio(
             nombre="Pedro",
             apellido="Ramírez",
-            dni="87654321",
-            email="pedro@email.com"
+            dni=f"87{suffix}",
+            email=f"pedro.{suffix}@email.com"
         )
         socio3 = Socio(
             nombre="Ana",
             apellido="López",
-            dni="55555555",
-            email="ana@email.com"
+            dni=f"55{suffix}",
+            email=f"ana.{suffix}@email.com"
         )
         db.session.add_all([socio1, socio2, socio3])
         

@@ -150,3 +150,12 @@ class SolicitudBajaService:
             Lista de solicitudes del socio
         """
         return self.solicitud_repo.find_by_socio(socio_id)
+
+    def obtener_todas_solicitudes(self) -> List[SolicitudBaja]:
+        """
+        Obtiene todas las solicitudes registradas.
+        
+        Returns:
+            Lista de todas las solicitudes
+        """
+        return self.solicitud_repo.get_all()

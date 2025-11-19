@@ -11,7 +11,7 @@ import sys
 from datetime import datetime, timedelta, time
 
 # Configurar ruta absoluta para la base de datos
-os.environ['DATABASE_URL'] = f'sqlite:///{os.getcwd()}/src/instance/fitflow.db'
+# os.environ['DATABASE_URL'] = f'sqlite:///{os.getcwd()}/src/instance/fitflow.db'
 
 from src.main import create_app
 from src.config.database import db
@@ -148,9 +148,9 @@ def test_calendario_agregador(app, datos):
         
         for evento in calendario[:5]:  # Mostrar solo primeros 5
             print(f"  - {evento.titulo}")
-            print(f"    Fecha: {evento.fecha_hora.strftime('%Y-%m-%d %H:%M')}")
-            print(f"    Origen: {evento.origen}")
-            print(f"    Cupos: {evento.cupos_disponibles}/{evento.cupos_totales}")
+            print(f"    Fecha: {evento.fecha} {evento.hora_inicio}")
+            print(f"    Origen: {evento.origen if hasattr(evento, 'origen') else evento.tipo}")
+            print(f"    Cupos: {evento.cupos_disponibles}/{evento.cupo_maximo}")
             print()
         
         print(f"✅ Total de eventos: {len(calendario)}")
@@ -159,8 +159,8 @@ def test_calendario_agregador(app, datos):
         print("\n📅 Calendario consolidado (modo OCUPADO):")
         calendario_ocupado = servicio.obtener_calendario_consolidado(
             modo=ModoVisualizacion.OCUPADO,
-            fecha_inicio=datetime.now(),
-            fecha_fin=datetime.now() + timedelta(days=7)
+            fecha_desde=datetime.now().date(),
+            fecha_hasta=(datetime.now() + timedelta(days=7)).date()
         )
         
         print(f"✅ Eventos con cupos limitados: {len(calendario_ocupado)}")
@@ -178,20 +178,21 @@ def test_lista_espera(app, datos):
         clase = Clase.query.get(clase_id)
         
         # Crear reserva para socio 1
+        socio1 = Socio.query.get(datos['socio1'])
+        clase = Clase.query.get(clase_id)
         reserva1 = Reserva(
-            socio_id=datos['socio1'],
-            clase_id=clase_id,
-            confirmada=True
+            socio=socio1,
+            clase=clase
         )
         db.session.add(reserva1)
         db.session.commit()
         print(f"  ✅ Reserva 1 creada (Cupo 1/{clase.cupo_maximo})")
         
         # Crear reserva para socio 2
+        socio2 = Socio.query.get(datos['socio2'])
         reserva2 = Reserva(
-            socio_id=datos['socio2'],
-            clase_id=clase_id,
-            confirmada=True
+            socio=socio2,
+            clase=clase
         )
         db.session.add(reserva2)
         db.session.commit()
@@ -200,7 +201,8 @@ def test_lista_espera(app, datos):
         
         # Inscribir socio 3 en lista de espera
         print("\n📝 Inscribiendo socio 3 en lista de espera...")
-        entrada = servicio.inscribir_en_lista_espera(datos['socio3'], clase_id)
+        socio3 = Socio.query.get(datos['socio3'])
+        entrada = servicio.inscribir_en_lista_espera(socio3, clase)
         print(f"  ✅ Socio inscrito en posición: {entrada.posicion}")
         print(f"  ℹ️  Estado notificado: {entrada.notificado}")
         
@@ -220,7 +222,7 @@ def test_lista_espera(app, datos):
         
         # Notificar siguiente en lista
         print("\n📧 Notificando siguiente en lista...")
-        notificado = servicio.notificar_siguiente_en_lista(clase_id)
+        notificado = servicio.notificar_siguiente_en_lista(clase)
         
         if notificado:
             print(f"  ✅ Socio {notificado.socio_id} notificado")
@@ -228,7 +230,7 @@ def test_lista_espera(app, datos):
             
             # Confirmar lugar
             print("\n✅ Confirmando lugar en lista de espera...")
-            confirmado = servicio.confirmar_lugar(notificado.id)
+            confirmado = servicio.confirmar_lugar(notificado.socio, notificado.clase)
             print(f"  ✅ Confirmación exitosa")
             print(f"  ℹ️  Reserva creada automáticamente")
             
@@ -290,9 +292,15 @@ def test_solicitudes_baja(app, datos):
         
         # Crear solicitud
         print("📝 Creando solicitud de baja...")
+        justificacion_valida = (
+            "Solicito la baja del servicio debido a un cambio de residencia permanente a otra ciudad "
+            "por motivos laborales. Lamentablemente no podré continuar asistiendo al gimnasio "
+            "y necesito cancelar mi suscripción actual. Agradezco el servicio prestado durante este tiempo "
+            "y espero poder volver en el futuro si regreso a la zona."
+        )
         solicitud = servicio.crear_solicitud(
             socio_id=datos['socio1'],
-            motivo="Cambio de ciudad"
+            justificacion=justificacion_valida
         )
         print(f"  ✅ Solicitud creada con ID: {solicitud.id}")
         print(f"  ℹ️  Estado: {solicitud.estado.value}")
@@ -303,7 +311,7 @@ def test_solicitudes_baja(app, datos):
         for sol in solicitudes:
             print(f"  - Solicitud #{sol.id} - Socio {sol.socio_id}")
             print(f"    Estado: {sol.estado.value}")
-            print(f"    Motivo: {sol.motivo}")
+            print(f"    Motivo: {sol.justificacion}")
         
         # Aprobar solicitud
         print("\n✅ Aprobando solicitud...")
@@ -313,16 +321,22 @@ def test_solicitudes_baja(app, datos):
         
         # Crear y rechazar otra solicitud
         print("\n📝 Creando y rechazando nueva solicitud...")
+        justificacion_valida2 = (
+            "Estoy experimentando dificultades económicas temporales y necesito suspender mis gastos "
+            "no esenciales por el momento. Espero poder reactivar mi membresía en unos meses cuando "
+            "mi situación financiera mejore. Por favor procesen esta solicitud lo antes posible. "
+            "Muchas gracias por su comprensión."
+        )
         solicitud2 = servicio.crear_solicitud(
             socio_id=datos['socio2'],
-            motivo="Problemas económicos"
+            justificacion=justificacion_valida2
         )
         rechazada = servicio.rechazar_solicitud(
             solicitud2.id,
             "El socio tiene pagos pendientes"
         )
         print(f"  ❌ Solicitud rechazada")
-        print(f"  ℹ️  Motivo rechazo: {rechazada.motivo_rechazo}")
+        print(f"  ℹ️  Motivo rechazo: {rechazada.comentario_admin}")
 
 def ejecutar_todas_las_pruebas():
     """Ejecuta todas las pruebas"""
