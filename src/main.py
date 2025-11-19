@@ -5,9 +5,10 @@ from src.config.settings import settings
 from src.core.logging_config import setup_logging, get_logger
 from src.api.controllers import (
     socio_bp, clase_bp, reserva_bp, pago_bp, 
-    plan_bp, solicitud_bp, calendario_bp
+    plan_bp, solicitud_bp, calendario_bp, estadisticas_bp
 )
 from src.exceptions.base_exceptions import FitFlowException
+from src.extensions import socketio, limiter
 
 # Configurar logging
 setup_logging(log_level=settings.app.log_level)
@@ -36,9 +37,11 @@ def create_app():
     
     logger.info("Inicializando aplicación FitFlow...")
     
-    # Inicializar base de datos
+    # Inicializar extensiones
     init_db(app)
-    logger.info("Base de datos inicializada")
+    socketio.init_app(app)
+    limiter.init_app(app)
+    logger.info("Extensiones inicializadas (DB, SocketIO, Limiter)")
     
     # Registrar blueprints (controladores REST)
     app.register_blueprint(socio_bp)
@@ -48,6 +51,7 @@ def create_app():
     app.register_blueprint(plan_bp)
     app.register_blueprint(solicitud_bp)
     app.register_blueprint(calendario_bp)
+    app.register_blueprint(estadisticas_bp)
     logger.info("Controladores REST registrados")
     
     # Configurar tareas programadas (scheduler)
@@ -99,6 +103,19 @@ def create_app():
         # Si es una petición web normal, devolver página de error
         return render_template('index.html'), 500
     
+    # Middleware para bloqueo de IPs
+    @app.before_request
+    def bloquear_ips():
+        """Verifica si la IP del cliente está bloqueada"""
+        from flask import request, abort
+        
+        # Lista de IPs bloqueadas (podría venir de BD o config)
+        ips_bloqueadas = settings.app.blocked_ips or []
+        
+        if request.remote_addr in ips_bloqueadas:
+            logger.warning(f"Acceso denegado a IP bloqueada: {request.remote_addr}")
+            abort(403, description="Acceso denegado: IP bloqueada")
+    
     # Rutas Web (templates HTML)
     @app.route('/')
     def index():
@@ -132,6 +149,7 @@ def create_app():
     
     # API Endpoints informativos
     @app.route('/api')
+    @limiter.limit("10 per minute")
     def api_info():
         """Endpoint raíz con información de la API"""
         return jsonify({
@@ -146,6 +164,7 @@ def create_app():
                 'planes': '/api/planes',
                 'solicitudes': '/api/solicitudes',
                 'calendario': '/api/calendario',
+                'estadisticas': '/api/estadisticas',
                 'health': '/health'
             }
         })
@@ -234,14 +253,16 @@ def init_database():
             "Clase de spinning de alta intensidad",
             20,
             entrenador1,
-            horario1
+            horario1,
+            imagen_url="https://example.com/spinning.jpg"
         )
         clase2 = Clase(
             "Yoga Matutino",
             "Sesión de yoga relajante",
             15,
             entrenador2,
-            horario2
+            horario2,
+            video_url="https://example.com/yoga_demo.mp4"
         )
         
         clase1.planes.append(plan_premium)
@@ -280,7 +301,8 @@ if __name__ == '__main__':
     # Ejecutar aplicación
     logger.info(f"Iniciando servidor en {settings.app.host}:{settings.app.port}")
     app = create_app()
-    app.run(
+    socketio.run(
+        app,
         debug=settings.app.debug,
         host=settings.app.host,
         port=settings.app.port

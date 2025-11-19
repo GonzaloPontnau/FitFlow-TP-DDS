@@ -36,6 +36,7 @@ class AppConfig:
     log_level: str
     host: str = '0.0.0.0'
     port: int = 5000
+    blocked_ips: list = None
 
 
 class Settings:
@@ -68,7 +69,8 @@ class Settings:
             testing=os.getenv('TESTING', 'False').lower() == 'true',
             log_level=os.getenv('LOG_LEVEL', 'INFO'),
             host=os.getenv('HOST', '0.0.0.0'),
-            port=int(os.getenv('PORT', 5000))
+            port=int(os.getenv('PORT', 5000)),
+            blocked_ips=os.getenv('BLOCKED_IPS', '').split(',') if os.getenv('BLOCKED_IPS') else []
         )
         
         # Configuración de base de datos

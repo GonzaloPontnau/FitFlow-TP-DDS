@@ -110,6 +110,17 @@ class ReservaService:
         reserva = Reserva(socio=socio, clase=clase)
         reserva_guardada = self.reserva_repository.save(reserva)
         
+        # Emitir evento de nueva reserva
+        try:
+            from src.extensions import socketio
+            socketio.emit('actualizacion_cupos', {
+                'clase_id': clase.id,
+                'cupos_disponibles': clase.cupos_disponibles()
+            })
+        except Exception as e:
+            # No fallar si hay error en socket
+            print(f"Error emitiendo evento socket: {e}")
+        
         return {
             'success': True,
             'reserva': reserva_guardada,
@@ -162,6 +173,16 @@ class ReservaService:
         # Cancelar la reserva
         reserva.cancelar()
         reserva_actualizada = self.reserva_repository.save(reserva)
+        
+        # Emitir evento de cancelación
+        try:
+            from src.extensions import socketio
+            socketio.emit('actualizacion_cupos', {
+                'clase_id': reserva.clase.id,
+                'cupos_disponibles': reserva.clase.cupos_disponibles()
+            })
+        except Exception as e:
+            print(f"Error emitiendo evento socket: {e}")
         
         return {
             'success': True,

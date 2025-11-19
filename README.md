@@ -1,141 +1,176 @@
-# FitFlow - Sistema de Gestión para Gimnasios
+# FitFlow - Sistema de Gestión Integral para Gimnasios
 
-Sistema de gestión integral de operaciones para gimnasios y centros de fitness.
+Sistema open-source diseñado para la gestión integral de operaciones de gimnasios, desarrollado como Trabajo Práctico de Diseño de Sistemas de Software I (2025).
 
-**Trabajo Práctico Anual Integrador - Diseño de Sistemas 2025**  
-Universidad Tecnológica Nacional (UTN)
+## 🎯 Funcionalidades Implementadas
 
----
+### Entrega 1: Dominio Base
+- ✅ Modelo de dominio completo (Socios, Clases, Planes, Entrenadores)
+- ✅ Carga masiva de socios desde CSV
+- ✅ Gestión de solicitudes de baja con validadores automáticos
+- ✅ Sistema de roles (Socio Registrado, Visualizador, Administrador)
 
-## 🚀 Instalación
+### Entrega 2: Integraciones
+- ✅ Sistema de reservas con validación de cupos
+- ✅ Proxy para Pasarela de Pagos
+- ✅ Proxy para Clases Externas (talleres de terceros)
+- ✅ Validación automática de solicitudes (Strategy Pattern)
 
-### Requisitos
-- Python 3.10+
+### Entrega 3: Agregador y Funcionalidades Avanzadas
+- ✅ Servicio Agregador de Horarios (consolidación interna + externa)
+- ✅ Sistema de Listas de Espera con notificaciones y confirmación
+- ✅ CRUD completo de Planes de Membresía
+- ✅ Gestión de Solicitudes de Baja
+
+### Entrega 4: Persistencia y Estadísticas
+- ✅ Persistencia completa con SQLAlchemy
+- ✅ Soporte multimedia (imágenes/videos en clases)
+- ✅ Servicio de Estadísticas con Dashboard
+- ✅ Exportación de asistencia a CSV
+
+### Entrega 5: Web MVC
+- ✅ Interfaz web completa (Flask + Templates)
+- ✅ Vistas para socios (calendario, reservas)
+- ✅ Panel administrativo
+
+### Entrega 6: Despliegue y Seguridad
+- ✅ WebSockets para actualizaciones en tiempo real (Flask-SocketIO)
+- ✅ Rate Limiting (Flask-Limiter)
+- ✅ Bloqueo de IPs configurable
+- ✅ Sistema de logging y observabilidad
+
+## 🚀 Instalación y Ejecución Local
+
+### Requisitos Previos
+- Python 3.8+
 - pip
+- Entorno virtual (venv)
 
-### Setup
-
+### 1. Clonar el Repositorio
 ```bash
-# Clonar repositorio
-git clone https://github.com/GonzaloPontnau/FitFlow-TP-DDS.git
+git clone <repository-url>
 cd FitFlow-TP-DDS
-
-# Crear entorno virtual
-python -m venv venv
-
-# Activar entorno virtual
-# Windows:
-venv\Scripts\activate
-# Linux/Mac:
-source venv/bin/activate
-
-# Instalar dependencias
-pip install -r requirements.txt
-
-# Crear archivo .env (opcional para desarrollo)
-# Para desarrollo, el sistema usa valores por defecto
 ```
 
-### Ejecutar Aplicación
+### 2. Crear Entorno Virtual
+```bash
+python -m venv venv
+```
 
+### 3. Activar Entorno Virtual
+
+**Windows (Git Bash):**
+```bash
+source venv/Scripts/activate
+```
+
+**Windows (CMD):**
+```cmd
+venv\Scripts\activate
+```
+
+**Linux/Mac:**
+```bash
+source venv/bin/activate
+```
+
+### 4. Instalar Dependencias
+```bash
+pip install -r requirements.txt
+```
+
+### 5. Inicializar Base de Datos
+```bash
+python -m src.main init-db
+```
+
+### 6. Ejecutar la Aplicación
 ```bash
 python -m src.main
 ```
 
-Disponible en: `http://localhost:5000`
+La aplicación estará disponible en: `http://localhost:5000`
 
----
+## 🧪 Ejecutar Pruebas
 
-## 🧪 Testing
-
-### Ejecutar Tests
-
+### Ejecutar todos los tests
 ```bash
-# Todos los tests
-python -m pytest
-
-# Con detalles
-python -m pytest -v
-
-# Con cobertura
-python -m pytest --cov=src
-
-# Cobertura detallada
-python -m pytest --cov=src --cov-report=term-missing
-
-# Generar reporte HTML
-python -m pytest --cov=src --cov-report=html
+pytest
 ```
 
-## 📋 Funcionalidades
-
-### Entrega 1 ✅
-- Carga masiva de socios desde CSV
-- CRUD de Planes de Membresía
-- Gestión y filtrado de Clases
-- Sistema de Solicitudes de Baja
-- Roles: Administrador, Socio Registrado, Visualizador
-
-### Entrega 2 ✅
-- Gestión de Reservas a clases
-- Integración con Pasarela de Pagos (simulada)
-- Integración con API de Clases Externas (simulada)
-- Validación automática de solicitudes
-
-### Entrega 3 ✅
-- **API REST Completa**: CRUD de Clases, Planes y Solicitudes
-- **Servicio Agregador**: Calendario consolidado de múltiples fuentes
-- **Listas de Espera**: Gestión automática con notificaciones
-- **Tareas Asincrónicas**: Procesamiento nocturno con APScheduler
-- **Modos de Visualización**: Normal (solo con cupo) y Ocupado (todas)
-
-Ver [ENTREGA3.md](ENTREGA3.md) para documentación detallada de la Entrega 3.
-
-### Próximas Entregas
-Ver [ENTREGAS.md](ENTREGAS.md) para detalles completos.
-
----
-
-## 🏗️ Arquitectura
-
-```
-src/
-├── api/                    # Controladores REST
-├── models/                 # Modelos del dominio
-├── repositories/           # Acceso a datos
-├── services/               # Lógica de negocio
-├── datasources/proxy/      # Integraciones externas
-├── validators/             # Validaciones de negocio
-├── config/                 # Configuración
-└── main.py                 # Punto de entrada
-```
-
----
-
-## 🛠️ Stack Tecnológico
-
-- **Backend:** Python 3.10+, Flask 3.0.0
-- **ORM:** SQLAlchemy
-- **Base de Datos:** SQLite (dev)
-- **Scheduler:** APScheduler 3.10+
-- **Testing:** Pytest
-- **Procesamiento:** Pandas
-
----
-
-## 📝 Variables de Entorno
-
-Para desarrollo, el sistema funciona con valores por defecto. Para producción, crear archivo `.env`:
-
+### Ejecutar tests con reporte detallado
 ```bash
-# Base de Datos
+pytest -v
+```
+
+### Ejecutar tests de una entrega específica
+```bash
+pytest tests/test_entrega2.py
+pytest tests/test_entrega3.py
+```
+
+### Test manual completo (todas las entregas)
+```bash
+python tests/manual_test_completo.py
+```
+
+## 📡 API Endpoints Principales
+
+- **`GET /api`** - Información de la API
+- **`GET /api/clases`** - Listar clases
+- **`POST /api/reservas`** - Crear reserva
+- **`GET /api/estadisticas/dashboard`** - Dashboard de estadísticas
+- **`GET /api/clases/<id>/reporte-asistencia`** - Descargar CSV de asistencia
+- **`GET /health`** - Health check del sistema
+
+## 🔧 Configuración
+
+Puedes configurar la aplicación mediante variables de entorno en un archivo `.env`:
+
+```env
+# Base de datos
 DATABASE_URL=sqlite:///src/instance/fitflow.db
 
 # Aplicación
-DEBUG=true
 SECRET_KEY=tu-clave-secreta
+DEBUG=False
+PORT=5000
 
-# Servicios Externos (simulados por defecto)
-PASARELA_PAGOS_API_KEY=test_api_key
-CLASES_EXTERNAS_API_KEY=test_key
-``
+# Seguridad
+BLOCKED_IPS=192.168.1.100,10.0.0.5
+
+# Proxies externos
+PASARELA_PAGOS_API_KEY=tu-api-key
+CLASES_EXTERNAS_API_KEY=tu-api-key
+```
+
+## 🏗️ Arquitectura
+
+- **Backend**: Flask (Python)
+- **ORM**: SQLAlchemy
+- **Base de Datos**: SQLite (desarrollo) / PostgreSQL (producción)
+- **WebSockets**: Flask-SocketIO
+- **Rate Limiting**: Flask-Limiter
+- **Patrones**: Repository, Service Layer, Strategy, Proxy
+
+## 📂 Estructura del Proyecto
+
+```
+FitFlow-TP-DDS/
+├── src/
+│   ├── api/controllers/     # Controladores REST
+│   ├── models/              # Modelos SQLAlchemy
+│   ├── services/            # Lógica de negocio
+│   ├── repositories/        # Acceso a datos
+│   ├── datasources/proxy/   # Integraciones externas
+│   ├── validators/          # Validadores
+│   ├── templates/           # Templates HTML
+│   ├── config/              # Configuración
+│   └── main.py              # Entry point
+├── tests/                   # Tests automatizados
+└── requirements.txt         # Dependencias
+```
+
+## 👥 Autores
+
+Trabajo Práctico - Diseño de Sistemas de Software I (2025)

@@ -29,6 +29,8 @@ class Clase(db.Model):
     cupo_maximo: Mapped[int] = mapped_column(Integer, nullable=False)
     activa: Mapped[bool] = mapped_column(Boolean, default=True)
     tiene_lista_espera: Mapped[bool] = mapped_column(Boolean, default=False)
+    imagen_url: Mapped[str] = mapped_column(String(255), nullable=True)
+    video_url: Mapped[str] = mapped_column(String(255), nullable=True)
     
     # Foreign Keys
     entrenador_id: Mapped[int] = mapped_column(
@@ -64,7 +66,8 @@ class Clase(db.Model):
     )
     
     def __init__(self, titulo: str, descripcion: str, cupo_maximo: int,
-                 entrenador: "Entrenador", horario: "Horario"):
+                 entrenador: "Entrenador", horario: "Horario",
+                 imagen_url: str = None, video_url: str = None):
         """
         Inicializa una nueva Clase.
         
@@ -74,6 +77,8 @@ class Clase(db.Model):
             cupo_maximo: Cantidad máxima de participantes
             entrenador: Entrenador que dicta la clase
             horario: Horario en que se dicta la clase
+            imagen_url: URL de la imagen representativa
+            video_url: URL del video demostrativo
         """
         if cupo_maximo <= 0:
             raise ValueError("El cupo máximo debe ser mayor a 0")
@@ -85,6 +90,8 @@ class Clase(db.Model):
         self.horario = horario
         self.activa = True
         self.tiene_lista_espera = False
+        self.imagen_url = imagen_url
+        self.video_url = video_url
     
     def cupos_disponibles(self) -> int:
         """Retorna la cantidad de cupos disponibles"""

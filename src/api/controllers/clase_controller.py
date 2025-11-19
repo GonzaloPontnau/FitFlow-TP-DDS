@@ -435,3 +435,26 @@ def obtener_lista_espera(clase_id: int):
         ]
     }), 200
 
+
+@clase_bp.route('/<int:clase_id>/reporte-asistencia', methods=['GET'])
+@handle_errors
+def generar_reporte_asistencia(clase_id: int):
+    """
+    Genera y descarga el reporte de asistencia de una clase.
+    
+    Args:
+        clase_id: ID de la clase
+        
+    Returns:
+        200: Archivo CSV
+        404: Clase no encontrada
+    """
+    csv_content = clase_service.generar_reporte_asistencia(clase_id)
+    
+    from flask import Response
+    return Response(
+        csv_content,
+        mimetype="text/csv",
+        headers={"Content-disposition": f"attachment; filename=asistencia_clase_{clase_id}.csv"}
+    )
+

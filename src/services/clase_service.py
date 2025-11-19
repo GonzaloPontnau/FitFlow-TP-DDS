@@ -129,3 +129,45 @@ class ClaseService:
         
         clase.desactivar()
         self.clase_repo.update(clase)
+
+    def generar_reporte_asistencia(self, clase_id: int) -> str:
+        """
+        Genera un reporte de asistencia en formato CSV.
+        
+        Args:
+            clase_id: ID de la clase
+            
+        Returns:
+            String con el contenido CSV
+            
+        Raises:
+            ValueError: Si la clase no existe
+        """
+        clase = self.obtener_clase(clase_id)
+        if not clase:
+            raise ValueError(f"Clase con ID {clase_id} no existe")
+            
+        import io
+        import csv
+        
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Header
+        writer.writerow(['Socio ID', 'Nombre', 'Apellido', 'DNI', 'Email', 'Estado Reserva', 'Fecha Reserva'])
+        
+        # Rows
+        for reserva in clase.reservas:
+            socio = reserva.socio
+            estado = "Confirmada" if reserva.confirmada else "Cancelada"
+            writer.writerow([
+                socio.id,
+                socio.nombre,
+                socio.apellido,
+                socio.dni,
+                socio.email,
+                estado,
+                reserva.fecha_reserva.strftime("%Y-%m-%d %H:%M:%S")
+            ])
+            
+        return output.getvalue()
