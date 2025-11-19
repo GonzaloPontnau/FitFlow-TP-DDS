@@ -1,5 +1,6 @@
 import pytest
 import os
+from datetime import time
 from src.main import create_app
 from src.config.database import db
 from src.models import Socio, Clase, Horario, Entrenador, PlanMembresia
@@ -42,23 +43,20 @@ def datos(app):
         socio1 = Socio(
             nombre="María",
             apellido="González",
-            email="maria@email.com",
-            telefono="1234567890",
-            dni="12345678"
+            dni="12345678",
+            email="maria@email.com"
         )
         socio2 = Socio(
             nombre="Pedro",
             apellido="Ramírez",
-            email="pedro@email.com",
-            telefono="0987654321",
-            dni="87654321"
+            dni="87654321",
+            email="pedro@email.com"
         )
         socio3 = Socio(
             nombre="Ana",
             apellido="López",
-            email="ana@email.com",
-            telefono="5555555555",
-            dni="55555555"
+            dni="55555555",
+            email="ana@email.com"
         )
         db.session.add_all([socio1, socio2, socio3])
         
@@ -73,13 +71,13 @@ def datos(app):
         # Crear horarios
         horario1 = Horario(
             dia_semana=DiaSemana.LUNES,
-            hora_inicio="18:00",
-            hora_fin="19:00"
+            hora_inicio=time(18, 0),
+            hora_fin=time(19, 0)
         )
         horario2 = Horario(
             dia_semana=DiaSemana.MIERCOLES,
-            hora_inicio="19:00",
-            hora_fin="20:00"
+            hora_inicio=time(19, 0),
+            hora_fin=time(20, 0)
         )
         db.session.add_all([horario1, horario2])
         
