@@ -1,0 +1,39 @@
+# ================================
+# FitFlow - Docker Compose
+# Sistema de Gestión para Gimnasios
+# ================================
+
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-production-secret-key-change-me}
+      - DEBUG=False
+      - LOG_LEVEL=INFO
+      - HOST=0.0.0.0
+      - PORT=5000
+      # Variables para integraciones externas (opcional)
+      - PASARELA_PAGOS_API_KEY=${PASARELA_PAGOS_API_KEY:-test_api_key}
+      - CLASES_EXTERNAS_API_KEY=${CLASES_EXTERNAS_API_KEY:-test_key}
+      # IPs bloqueadas (opcional, separadas por coma)
+      - BLOCKED_IPS=${BLOCKED_IPS:-}
+    volumes:
+      # Persistir base de datos SQLite entre reinicios
+      - fitflow_data:/app/src/instance
+      # Persistir logs
+      - fitflow_logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  fitflow_data:
+  fitflow_logs:

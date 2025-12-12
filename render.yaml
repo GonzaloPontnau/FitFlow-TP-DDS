@@ -1,0 +1,25 @@
+# ================================
+# FitFlow - Render Blueprint
+# One-click deployment configuration
+# ================================
+
+services:
+  - type: web
+    name: fitflow
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --worker-class gevent -w 1 -b 0.0.0.0:$PORT 'src.main:create_app()'
+    healthCheckPath: /health
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: LOG_LEVEL
+        value: "INFO"
+      - key: PYTHONUNBUFFERED
+        value: "1"
+    disk:
+      name: fitflow-data
+      mountPath: /app/src/instance
+      sizeGB: 1

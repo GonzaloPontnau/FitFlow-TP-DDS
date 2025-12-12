@@ -174,3 +174,68 @@ FitFlow-TP-DDS/
 ## 👥 Autores
 
 Trabajo Práctico - Diseño de Sistemas de Software I (2025)
+
+---
+
+## 🚀 Despliegue en Producción
+
+### Opción 1: Docker
+
+```bash
+# Construir imagen
+docker build -t fitflow .
+
+# Ejecutar contenedor
+docker run -p 5000:5000 fitflow
+
+# O usar Docker Compose (incluye persistencia)
+docker-compose up -d
+```
+
+### Opción 2: Render (One-click deployment)
+
+1. Conecta tu repositorio en [Render](https://render.com)
+2. Selecciona "Blueprint" y usa el archivo `render.yaml`
+3. La aplicación se desplegará automáticamente
+
+### Opción 3: Railway / Heroku
+
+Usa el `Procfile` incluido:
+```bash
+web: gunicorn --worker-class gevent -w 1 -b 0.0.0.0:$PORT 'src.main:create_app()'
+```
+
+## 📊 Monitoreo y Observabilidad
+
+### Health Check
+```bash
+curl http://localhost:5000/health
+```
+
+Respuesta:
+```json
+{
+  "status": "healthy",
+  "version": "3.0.0",
+  "timestamp": "2025-12-11T23:45:00",
+  "checks": {
+    "database": {"status": "connected"},
+    "scheduler": {"status": "running"}
+  },
+  "response_time_ms": 5.23
+}
+```
+
+### Rate Limiting
+- Límite: 10 requests/minuto en `/api`
+- Configurable vía Flask-Limiter
+
+### Bloqueo de IPs
+```env
+BLOCKED_IPS=192.168.1.100,10.0.0.5
+```
+
+### Logs
+- Console: Con colores (desarrollo)
+- Archivo: `logs/fitflow_YYYYMMDD.log`
+- Errores: `logs/fitflow_errors_YYYYMMDD.log`

@@ -55,9 +55,11 @@ def create_app():
     logger.info("Controladores REST registrados")
     
     # Configurar tareas programadas (scheduler)
+    scheduler_active = False
     try:
         from src.config.scheduler import configurar_tareas_programadas
         scheduler = configurar_tareas_programadas(app)
+        scheduler_active = True
         logger.info("Tareas asincrónicas configuradas")
     except Exception as e:
         logger.warning(f"No se pudieron configurar tareas asincrónicas: {e}")
@@ -171,12 +173,51 @@ def create_app():
     
     @app.route('/health')
     def health():
-        """Endpoint para verificar el estado del servicio"""
-        return jsonify({
+        """
+        Endpoint para verificar el estado del servicio.
+        
+        Verifica:
+        - Conectividad a la base de datos
+        - Tiempo de respuesta
+        - Uptime de la aplicación
+        """
+        import time
+        from datetime import datetime
+        
+        start_time = time.time()
+        health_status = {
             'status': 'healthy',
             'version': '3.0.0',
-            'database': 'connected'
-        })
+            'timestamp': datetime.utcnow().isoformat(),
+            'checks': {}
+        }
+        
+        # Verificar conectividad a la base de datos
+        try:
+            from src.config.database import db
+            db.session.execute(db.text('SELECT 1'))
+            health_status['checks']['database'] = {
+                'status': 'connected',
+                'type': 'sqlite'
+            }
+        except Exception as e:
+            health_status['status'] = 'unhealthy'
+            health_status['checks']['database'] = {
+                'status': 'disconnected',
+                'error': str(e)
+            }
+        
+        # Tiempo de respuesta
+        response_time_ms = (time.time() - start_time) * 1000
+        health_status['response_time_ms'] = round(response_time_ms, 2)
+        
+        # Información del sistema
+        health_status['checks']['scheduler'] = {
+            'status': 'running' if scheduler_active else 'stopped'
+        }
+        
+        status_code = 200 if health_status['status'] == 'healthy' else 503
+        return jsonify(health_status), status_code
     
     logger.info("Aplicación FitFlow configurada correctamente")
     return app
