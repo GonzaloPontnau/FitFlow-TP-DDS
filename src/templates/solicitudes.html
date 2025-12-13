@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Solicitudes de Baja - FitFlow{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Solicitudes de Baja de Membresía</h2>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters">
+        <select id="filtroEstado" onchange="cargarSolicitudes()">
+            <option value="">Todas las solicitudes</option>
+            <option value="pendiente">Pendientes</option>
+            <option value="aprobada">Aprobadas</option>
+            <option value="rechazada">Rechazadas</option>
+        </select>
+    </div>
+
+    <div id="solicitudes-list">
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Cargando solicitudes...</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .filters {
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: var(--bg-dark);
+        border-radius: 8px;
+    }
+
+    .filters select {
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        background: var(--card-bg);
+        color: var(--text-color);
+    }
+
+    .solicitud-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .solicitud-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .solicitud-socio {
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+
+    .solicitud-fecha {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    .solicitud-justificacion {
+        background: var(--bg-dark);
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+        font-style: italic;
+    }
+
+    .solicitud-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+
+    .badge-pendiente {
+        background: #ffc107;
+        color: #212529;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+    }
+
+    .badge-aprobada {
+        background: #28a745;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+    }
+
+    .badge-rechazada {
+        background: #dc3545;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function cargarSolicitudes() {
+        const estado = document.getElementById('filtroEstado').value;
+        const url = estado ? `/api/solicitudes?estado=${estado}` : '/api/solicitudes';
+
+        try {
+            const data = await apiRequest(url);
+            const container = document.getElementById('solicitudes-list');
+            const solicitudes = data.data || [];
+
+            if (solicitudes.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 2rem;">No hay solicitudes de baja</p>';
+                return;
+            }
+
+            container.innerHTML = solicitudes.map(sol => `
+            <div class="solicitud-card">
+                <div class="solicitud-header">
+                    <span class="solicitud-socio">${sol.socio_nombre || 'Socio #' + sol.socio_id}</span>
+                    <span class="badge-${sol.estado}">${sol.estado.charAt(0).toUpperCase() + sol.estado.slice(1)}</span>
+                </div>
+                <div class="solicitud-fecha">Solicitado: ${new Date(sol.fecha_solicitud).toLocaleDateString('es-AR')}</div>
+                <div class="solicitud-justificacion">
+                    "${sol.justificacion}"
+                </div>
+                ${sol.estado === 'pendiente' ? `
+                    <div class="solicitud-actions">
+                        <button class="btn btn-success" onclick="aprobarSolicitud(${sol.id})">Aprobar</button>
+                        <button class="btn btn-danger" onclick="rechazarSolicitud(${sol.id})">Rechazar</button>
+                    </div>
+                ` : ''}
+            </div>
+        `).join('');
+        } catch (error) {
+            console.error('Error cargando solicitudes:', error);
+            document.getElementById('solicitudes-list').innerHTML =
+                '<div class="alert alert-error">Error al cargar solicitudes</div>';
+        }
+    }
+
+    async function aprobarSolicitud(id) {
+        if (!confirm('¿Está seguro de aprobar esta solicitud de baja?')) return;
+
+        try {
+            await apiRequest(`/api/solicitudes/${id}/aprobar`, { method: 'PUT' });
+            showAlert('Solicitud aprobada correctamente', 'success');
+            cargarSolicitudes();
+        } catch (error) {
+            console.error('Error aprobando solicitud:', error);
+        }
+    }
+
+    async function rechazarSolicitud(id) {
+        const motivo = prompt('Ingrese el motivo del rechazo:');
+        if (!motivo) return;
+
+        try {
+            await apiRequest(`/api/solicitudes/${id}/rechazar`, {
+                method: 'PUT',
+                body: JSON.stringify({ motivo_rechazo: motivo })
+            });
+            showAlert('Solicitud rechazada', 'info');
+            cargarSolicitudes();
+        } catch (error) {
+            console.error('Error rechazando solicitud:', error);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', cargarSolicitudes);
+</script>
+{% endblock %}

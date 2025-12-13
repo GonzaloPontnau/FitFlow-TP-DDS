@@ -73,6 +73,28 @@ class BaseRepository(Generic[T]):
         self.session.commit()
         return entity
     
+    def save(self, entity: T) -> T:
+        """
+        Guarda una entidad (crea si es nueva, actualiza si existe).
+        
+        Este método es un alias conveniente que determina automáticamente
+        si debe crear o actualizar la entidad.
+        
+        Args:
+            entity: Entidad a guardar
+            
+        Returns:
+            La entidad guardada
+        """
+        # Si la entidad tiene ID, está siendo actualizada, si no, es nueva
+        if hasattr(entity, 'id') and entity.id is not None:
+            self.session.merge(entity)
+        else:
+            self.session.add(entity)
+        self.session.commit()
+        self.session.refresh(entity)
+        return entity
+    
     def delete(self, entity_id: int) -> bool:
         """
         Elimina una entidad por su ID.

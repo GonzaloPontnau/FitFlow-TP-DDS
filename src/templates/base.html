@@ -1,17 +1,37 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}FitFlow - Sistema de Gestión{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
+
 <body>
     <!-- Header -->
     <header>
         <div class="header-content">
-            <h1>FitFlow</h1>
-            <p class="subtitle">Sistema de Gestión para Gimnasios</p>
+            <div class="header-text">
+                <h1>FitFlow</h1>
+                <p class="subtitle">Sistema de Gestión para Gimnasios</p>
+            </div>
+            <div class="logo-3d-container" id="logo3dContainer">
+                <div class="logo-3d-wrapper" id="logo3dWrapper">
+                    <div class="logo-3d-card">
+                        <div class="logo-3d-front">
+                            <img src="{{ url_for('static', filename='logo.png') }}" alt="FitFlow Logo"
+                                class="logo-3d-img">
+                        </div>
+                        <div class="logo-3d-eagle">
+                            <img src="{{ url_for('static', filename='aguila_logo.png') }}" alt="Eagle"
+                                class="eagle-img">
+                        </div>
+                        <div class="logo-3d-glow"></div>
+                        <div class="logo-3d-shadow"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </header>
 
@@ -25,6 +45,9 @@
                 <li><a href="/planes">Planes</a></li>
                 <li><a href="/reservas">Reservas</a></li>
                 <li><a href="/calendario">Calendario</a></li>
+                <li><a href="/solicitudes">Solicitudes</a></li>
+                <li><a href="/estadisticas/dashboard">Estadísticas</a></li>
+                <li><a href="/admin">Admin</a></li>
             </ul>
         </div>
     </nav>
@@ -36,6 +59,152 @@
 
     <!-- Scripts -->
     <script src="{{ url_for('static', filename='app.js') }}"></script>
+
+    <!-- 3D Logo Interactive Script -->
+    <script>
+        (function () {
+            const container = document.getElementById('logo3dContainer');
+            const wrapper = document.getElementById('logo3dWrapper');
+
+            if (!container || !wrapper) return;
+
+            let currentRotateX = 0;
+            let currentRotateY = 0;
+            let targetRotateX = 0;
+            let targetRotateY = 0;
+            let isHovering = false;
+
+            // Smooth animation loop
+            function animate() {
+                // Easing towards target
+                currentRotateX += (targetRotateX - currentRotateX) * 0.1;
+                currentRotateY += (targetRotateY - currentRotateY) * 0.1;
+
+                // Apply transform
+                wrapper.style.transform = `perspective(1000px) rotateX(${currentRotateX}deg) rotateY(${currentRotateY}deg)`;
+
+                requestAnimationFrame(animate);
+            }
+            animate();
+
+            // Mouse move handler
+            container.addEventListener('mousemove', function (e) {
+                if (!isHovering) return;
+
+                const rect = container.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+
+                // Calculate rotation based on mouse position
+                const mouseX = e.clientX - centerX;
+                const mouseY = e.clientY - centerY;
+
+                // Adjust sensitivity (max rotation degrees)
+                const maxRotation = 25;
+                targetRotateY = (mouseX / (rect.width / 2)) * maxRotation;
+                targetRotateX = -(mouseY / (rect.height / 2)) * maxRotation;
+            });
+
+            // Mouse enter
+            container.addEventListener('mouseenter', function () {
+                isHovering = true;
+                container.classList.add('active');
+            });
+
+            // Mouse leave - reset rotation
+            container.addEventListener('mouseleave', function () {
+                isHovering = false;
+                targetRotateX = 0;
+                targetRotateY = 0;
+                container.classList.remove('active');
+            });
+
+            // Click handler for modal view
+            container.addEventListener('click', function () {
+                openLogo3DModal();
+            });
+
+            // Create and handle modal
+            function openLogo3DModal() {
+                // Create modal if it doesn't exist
+                let modal = document.getElementById('logo3dModal');
+                if (!modal) {
+                    modal = document.createElement('div');
+                    modal.id = 'logo3dModal';
+                    modal.className = 'logo-3d-modal';
+                    modal.innerHTML = `
+                        <div class="logo-3d-modal-backdrop"></div>
+                        <div class="logo-3d-modal-content">
+                            <button class="logo-3d-modal-close">&times;</button>
+                            <div class="logo-3d-modal-wrapper" id="logo3dModalWrapper">
+                                <div class="logo-3d-modal-card">
+                                    <div class="logo-3d-modal-front">
+                                        <img src="${wrapper.querySelector('.logo-3d-img').src}" alt="FitFlow Logo">
+                                    </div>
+                                    <div class="logo-3d-modal-eagle">
+                                        <img src="${wrapper.querySelector('.eagle-img').src}" alt="Eagle">
+                                    </div>
+                                    <div class="logo-3d-modal-glow"></div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
+
+                    // Modal close handlers
+                    modal.querySelector('.logo-3d-modal-close').addEventListener('click', closeLogo3DModal);
+                    modal.querySelector('.logo-3d-modal-backdrop').addEventListener('click', closeLogo3DModal);
+
+                    // Modal 3D effect
+                    const modalWrapper = document.getElementById('logo3dModalWrapper');
+                    let modalRotateX = 0, modalRotateY = 0;
+                    let modalTargetX = 0, modalTargetY = 0;
+
+                    function animateModal() {
+                        modalRotateX += (modalTargetX - modalRotateX) * 0.08;
+                        modalRotateY += (modalTargetY - modalRotateY) * 0.08;
+                        modalWrapper.style.transform = `perspective(1500px) rotateX(${modalRotateX}deg) rotateY(${modalRotateY}deg)`;
+                        requestAnimationFrame(animateModal);
+                    }
+                    animateModal();
+
+                    modal.querySelector('.logo-3d-modal-content').addEventListener('mousemove', function (e) {
+                        const rect = this.getBoundingClientRect();
+                        const centerX = rect.left + rect.width / 2;
+                        const centerY = rect.top + rect.height / 2;
+                        const mouseX = e.clientX - centerX;
+                        const mouseY = e.clientY - centerY;
+
+                        modalTargetY = (mouseX / (rect.width / 2)) * 35;
+                        modalTargetX = -(mouseY / (rect.height / 2)) * 35;
+                    });
+
+                    modal.querySelector('.logo-3d-modal-content').addEventListener('mouseleave', function () {
+                        modalTargetX = 0;
+                        modalTargetY = 0;
+                    });
+                }
+
+                modal.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeLogo3DModal() {
+                const modal = document.getElementById('logo3dModal');
+                if (modal) {
+                    modal.classList.remove('show');
+                    document.body.style.overflow = '';
+                }
+            }
+
+            // Close on escape
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') closeLogo3DModal();
+            });
+        })();
+    </script>
+
     {% block scripts %}{% endblock %}
 </body>
+
 </html>

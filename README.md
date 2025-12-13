@@ -39,6 +39,55 @@ Sistema open-source diseñado para la gestión integral de operaciones de gimnas
 - ✅ Bloqueo de IPs configurable
 - ✅ Sistema de logging y observabilidad
 
+## 🛠️ Tecnologías y Lenguajes
+
+### Backend
+| Tecnología | Versión | Descripción |
+|------------|---------|-------------|
+| **Python** | 3.8+ | Lenguaje principal de desarrollo |
+| **Flask** | 2.x | Framework web ligero y extensible |
+| **SQLAlchemy** | 2.x | ORM para mapeo objeto-relacional |
+| **Flask-SocketIO** | 5.x | WebSockets para comunicación en tiempo real |
+| **Flask-Limiter** | 3.x | Rate limiting y control de tráfico |
+| **APScheduler** | 3.x | Programación de tareas en segundo plano |
+| **Waitress** | 2.x | Servidor WSGI para producción (Windows) |
+| **Gunicorn** | 21.x | Servidor WSGI para producción (Linux/Mac) |
+
+### Frontend
+| Tecnología | Descripción |
+|------------|-------------|
+| **HTML5** | Estructura y maquetado de interfaces |
+| **CSS3** | Estilos, animaciones y diseño responsive |
+| **JavaScript (ES6+)** | Interactividad y consumo de API REST |
+| **Jinja2** | Motor de templates (Server-Side Rendering) |
+
+### Base de Datos
+| Tecnología | Uso |
+|------------|-----|
+| **SQLite** | Desarrollo local y testing |
+| **PostgreSQL** | Producción (opcional) |
+
+### DevOps y Despliegue
+| Tecnología | Descripción |
+|------------|-------------|
+| **Docker** | Contenedorización de la aplicación |
+| **Docker Compose** | Orquestación de servicios |
+| **Render / Railway** | Plataformas PaaS para despliegue |
+
+### Testing
+| Tecnología | Descripción |
+|------------|-------------|
+| **pytest** | Framework de testing |
+| **pytest-cov** | Cobertura de código |
+
+### Patrones de Diseño Implementados
+- **Repository Pattern** - Abstracción de acceso a datos
+- **Service Layer** - Lógica de negocio encapsulada
+- **Strategy Pattern** - Validadores intercambiables
+- **Proxy Pattern** - Integración con servicios externos
+- **Singleton** - Configuración global única
+- **MVC** - Arquitectura Model-View-Controller
+
 ## 🚀 Instalación y Ejecución Local
 
 ### Requisitos Previos
@@ -89,7 +138,7 @@ python -m src.main init-db
 python -m src.main
 ```
 
-La aplicación estará disponible en: `http://localhost:5000`
+La aplicación estará disponible en: `http://localhost:5000` o `http://127.0.0.1:5000`
 
 ## 🧪 Ejecutar Pruebas
 

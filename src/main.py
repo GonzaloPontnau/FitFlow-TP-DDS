@@ -149,6 +149,21 @@ def create_app():
         """Página del calendario de clases"""
         return render_template('calendario.html')
     
+    @app.route('/admin')
+    def admin_page():
+        """Panel de administración"""
+        return render_template('admin.html')
+    
+    @app.route('/estadisticas/dashboard')
+    def estadisticas_page():
+        """Dashboard de estadísticas"""
+        return render_template('estadisticas.html')
+    
+    @app.route('/solicitudes')
+    def solicitudes_page():
+        """Gestión de solicitudes de baja"""
+        return render_template('solicitudes.html')
+    
     # API Endpoints informativos
     @app.route('/api')
     @limiter.limit("10 per minute")

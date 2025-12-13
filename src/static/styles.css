@@ -39,6 +39,15 @@ header {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.header-text {
+    flex: 1;
 }
 
 h1 {
@@ -50,6 +59,302 @@ h1 {
 .subtitle {
     font-size: 1rem;
     opacity: 0.9;
+}
+
+/* 3D Logo Container */
+.logo-3d-container {
+    cursor: pointer;
+    perspective: 1000px;
+    width: 120px;
+    height: 120px;
+    flex-shrink: 0;
+}
+
+.logo-3d-wrapper {
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.1s ease-out;
+}
+
+.logo-3d-card {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+}
+
+.logo-3d-front {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backface-visibility: hidden;
+    z-index: 2;
+}
+
+.logo-3d-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 12px;
+    transition: transform 0.3s ease;
+}
+
+.logo-3d-eagle {
+    position: absolute;
+    width: 70%;
+    height: 70%;
+    top: 50%;
+    left: 50%;
+    margin-top: -35%;
+    margin-left: -35%;
+    transform: translateZ(40px);
+    z-index: 3;
+    pointer-events: none;
+    /* Removed: animation: float 3s ease-in-out infinite; - now only on hover */
+}
+
+/* Add floating animation only on hover */
+.logo-3d-container:hover .logo-3d-eagle,
+.logo-3d-container.active .logo-3d-eagle {
+    animation: float 3s ease-in-out infinite;
+}
+
+.eagle-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.logo-3d-container:hover .eagle-img {
+    transform: scale(1.1);
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateZ(40px) translateY(0);
+    }
+
+    50% {
+        transform: translateZ(50px) translateY(-8px);
+    }
+}
+
+.logo-3d-glow {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.4) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    transform: translateZ(5px);
+    border-radius: 12px;
+    pointer-events: none;
+}
+
+.logo-3d-container:hover .logo-3d-glow,
+.logo-3d-container.active .logo-3d-glow {
+    opacity: 1;
+}
+
+.logo-3d-shadow {
+    position: absolute;
+    width: 80%;
+    height: 20px;
+    bottom: -15px;
+    left: 10%;
+    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.3) 0%, transparent 70%);
+    transform: translateZ(-20px) rotateX(90deg);
+    pointer-events: none;
+}
+
+/* 3D Logo Modal */
+.logo-3d-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2000;
+}
+
+.logo-3d-modal.show {
+    display: block;
+}
+
+.logo-3d-modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.logo-3d-modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    animation: zoomIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes zoomIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+.logo-3d-modal-close {
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo-3d-modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
+}
+
+.logo-3d-modal-wrapper {
+    width: 350px;
+    height: 350px;
+    transform-style: preserve-3d;
+    transition: transform 0.1s ease-out;
+}
+
+.logo-3d-modal-card {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+}
+
+.logo-3d-modal-front {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.logo-3d-modal-front img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 20px;
+}
+
+.logo-3d-modal-eagle {
+    position: absolute;
+    width: 60%;
+    height: 60%;
+    top: 50%;
+    left: 50%;
+    margin-top: -30%;
+    margin-left: -30%;
+    transform: translateZ(60px);
+    z-index: 3;
+    pointer-events: none;
+    animation: floatModal 3s ease-in-out infinite;
+}
+
+.logo-3d-modal-eagle img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+@keyframes floatModal {
+
+    0%,
+    100% {
+        transform: translateZ(60px) translateY(0) rotate(0deg);
+    }
+
+    25% {
+        transform: translateZ(70px) translateY(-15px) rotate(3deg);
+    }
+
+    50% {
+        transform: translateZ(80px) translateY(-5px) rotate(-2deg);
+    }
+
+    75% {
+        transform: translateZ(70px) translateY(-18px) rotate(2deg);
+    }
+}
+
+.logo-3d-modal-glow {
+    position: absolute;
+    width: 150%;
+    height: 150%;
+    top: -25%;
+    left: -25%;
+    background: radial-gradient(circle at center,
+            rgba(37, 99, 235, 0.2) 0%,
+            rgba(37, 99, 235, 0.1) 30%,
+            transparent 60%);
+    animation: pulse 2s ease-in-out infinite;
+    pointer-events: none;
+    transform: translateZ(-10px);
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 0.5;
+        transform: translateZ(-10px) scale(1);
+    }
+
+    50% {
+        opacity: 1;
+        transform: translateZ(-10px) scale(1.1);
+    }
 }
 
 /* Navigation */
@@ -297,8 +602,13 @@ tr:hover {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Alerts */
@@ -401,16 +711,16 @@ tr:hover {
     .nav-links {
         flex-wrap: wrap;
     }
-    
+
     .nav-links li a {
         padding: 0.75rem 1rem;
         font-size: 0.875rem;
     }
-    
+
     .grid {
         grid-template-columns: 1fr;
     }
-    
+
     .container {
         padding: 0 1rem;
     }
