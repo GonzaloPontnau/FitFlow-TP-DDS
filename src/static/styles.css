@@ -394,6 +394,57 @@ nav {
     border-bottom-color: var(--primary-color);
 }
 
+/* Navigation user section */
+.nav-user {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-left: auto;
+    padding: 0.5rem 0;
+}
+
+.user-badge {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.btn-logout {
+    background: var(--danger-color);
+    color: white !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    border-bottom: none !important;
+    transition: background 0.2s ease;
+}
+
+.btn-logout:hover {
+    background: #dc2626;
+    color: white !important;
+    border-bottom: none !important;
+}
+
+.btn-login {
+    background: linear-gradient(135deg, var(--secondary-color) 0%, #059669 100%);
+    color: white !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    border-bottom: none !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    color: white !important;
+    border-bottom: none !important;
+}
+
 /* Container */
 .container {
     max-width: 1200px;

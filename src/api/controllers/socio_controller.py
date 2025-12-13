@@ -151,3 +151,48 @@ def crear_socio():
             'plan': nuevo_socio.plan_membresia.titulo if nuevo_socio.plan_membresia else None
         }
     }), 201
+
+
+@socio_bp.route('/<int:socio_id>', methods=['DELETE'])
+@handle_errors
+def eliminar_socio(socio_id: int):
+    """
+    Elimina un socio del sistema.
+    
+    Args:
+        socio_id: ID del socio a eliminar
+    
+    Returns:
+        200: Socio eliminado exitosamente
+        404: Socio no encontrado
+    """
+    socio = socio_repository.get_by_id(socio_id)
+    
+    if not socio:
+        raise NotFoundException('Socio', socio_id)
+    
+    nombre = socio.nombre_completo
+    
+    # Eliminar reservas asociadas primero para evitar constraint errors
+    from src.config.database import db
+    for reserva in socio.reservas:
+        db.session.delete(reserva)
+    
+    # Eliminar solicitudes de baja asociadas
+    for solicitud in socio.solicitudes_baja:
+        db.session.delete(solicitud)
+    
+    # Eliminar pagos asociados
+    for pago in socio.pagos:
+        db.session.delete(pago)
+    
+    # Ahora eliminar el socio
+    db.session.delete(socio)
+    db.session.commit()
+    
+    logger.info(f"Socio {socio_id} ({nombre}) eliminado")
+    
+    return jsonify({
+        'success': True,
+        'message': f'Socio {nombre} eliminado exitosamente'
+    }), 200

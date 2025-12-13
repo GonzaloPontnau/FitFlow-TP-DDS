@@ -6,6 +6,7 @@
 <div class="card">
     <div class="card-header">
         <h2 class="card-title">Solicitudes de Baja de Membresía</h2>
+        <button class="btn btn-primary" onclick="openModal('modalNuevaSolicitud')">+ Nueva Solicitud</button>
     </div>
 
     <!-- Filtros -->
@@ -23,6 +24,35 @@
             <div class="spinner"></div>
             <p>Cargando solicitudes...</p>
         </div>
+    </div>
+</div>
+
+<!-- Modal Nueva Solicitud -->
+<div id="modalNuevaSolicitud" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Nueva Solicitud de Baja</h3>
+            <button class="modal-close" onclick="closeModal('modalNuevaSolicitud')">&times;</button>
+        </div>
+        <form onsubmit="crearSolicitud(event)">
+            <div class="form-group">
+                <label for="socio_id">Socio</label>
+                <select id="socio_id" name="socio_id" required>
+                    <option value="">Seleccionar socio...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="justificacion">Justificación (mínimo 150 caracteres)</label>
+                <textarea id="justificacion" name="justificacion" rows="5" required minlength="150"
+                    placeholder="Explique el motivo de la solicitud de baja..."></textarea>
+                <small id="charCount">0/150 caracteres</small>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary"
+                    onclick="closeModal('modalNuevaSolicitud')">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Enviar Solicitud</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -167,7 +197,7 @@
         try {
             await apiRequest(`/api/solicitudes/${id}/rechazar`, {
                 method: 'PUT',
-                body: JSON.stringify({ motivo_rechazo: motivo })
+                body: JSON.stringify({ comentario_admin: motivo })
             });
             showAlert('Solicitud rechazada', 'info');
             cargarSolicitudes();
@@ -176,6 +206,69 @@
         }
     }
 
-    document.addEventListener('DOMContentLoaded', cargarSolicitudes);
+    // Cargar socios para el dropdown
+    async function cargarSocios() {
+        try {
+            const data = await apiRequest('/api/socios');
+            const select = document.getElementById('socio_id');
+            const socios = data.data || [];
+
+            socios.forEach(socio => {
+                const option = document.createElement('option');
+                option.value = socio.id;
+                option.textContent = `${socio.nombre_completo} (DNI: ${socio.dni})`;
+                select.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error cargando socios:', error);
+        }
+    }
+
+    // Crear nueva solicitud de baja
+    async function crearSolicitud(event) {
+        event.preventDefault();
+
+        const socioId = document.getElementById('socio_id').value;
+        const justificacion = document.getElementById('justificacion').value;
+
+        if (justificacion.length < 150) {
+            showAlert('La justificación debe tener al menos 150 caracteres', 'error');
+            return;
+        }
+
+        try {
+            await apiRequest('/api/solicitudes', {
+                method: 'POST',
+                body: JSON.stringify({
+                    socio_id: parseInt(socioId),
+                    justificacion: justificacion
+                })
+            });
+
+            showAlert('Solicitud creada exitosamente', 'success');
+            closeModal('modalNuevaSolicitud');
+            document.getElementById('socio_id').value = '';
+            document.getElementById('justificacion').value = '';
+            document.getElementById('charCount').textContent = '0/150 caracteres';
+            cargarSolicitudes();
+        } catch (error) {
+            console.error('Error creando solicitud:', error);
+        }
+    }
+
+    // Contador de caracteres
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarSolicitudes();
+        cargarSocios();
+
+        const textarea = document.getElementById('justificacion');
+        const charCount = document.getElementById('charCount');
+
+        textarea.addEventListener('input', () => {
+            const length = textarea.value.length;
+            charCount.textContent = `${length}/150 caracteres`;
+            charCount.style.color = length >= 150 ? 'var(--secondary-color)' : 'var(--text-muted)';
+        });
+    });
 </script>
 {% endblock %}

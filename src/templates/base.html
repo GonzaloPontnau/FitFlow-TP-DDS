@@ -40,14 +40,22 @@
         <div class="nav-container">
             <ul class="nav-links">
                 <li><a href="/">Inicio</a></li>
-                <li><a href="/socios">Socios</a></li>
                 <li><a href="/clases">Clases</a></li>
                 <li><a href="/planes">Planes</a></li>
-                <li><a href="/reservas">Reservas</a></li>
                 <li><a href="/calendario">Calendario</a></li>
+                {% if session.get('admin_logged_in') %}
+                <li><a href="/socios">Socios</a></li>
+                <li><a href="/reservas">Reservas</a></li>
                 <li><a href="/solicitudes">Solicitudes</a></li>
-                <li><a href="/estadisticas/dashboard">Estadísticas</a></li>
+                <li><a href="/estadisticas/dashboard">Estadisticas</a></li>
+                {% endif %}
                 <li><a href="/admin">Admin</a></li>
+                {% if session.get('admin_logged_in') %}
+                <li class="nav-user">
+                    <span class="user-badge">{{ session.get('admin_username', 'Admin') }}</span>
+                    <a href="/logout" class="btn-logout">Cerrar Sesion</a>
+                </li>
+                {% endif %}
             </ul>
         </div>
     </nav>

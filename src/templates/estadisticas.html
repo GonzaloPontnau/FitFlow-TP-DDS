@@ -66,35 +66,39 @@
     async function cargarEstadisticas() {
         try {
             const response = await fetch('/api/estadisticas/dashboard');
-            const data = await response.json();
+            const stats = await response.json();
 
-            const stats = data.data || {};
             const container = document.getElementById('stats-container');
+
+            // Formatear horario concurrido
+            const franjaHoraria = stats.horario_concurrido
+                ? `${stats.horario_concurrido.dia} ${stats.horario_concurrido.hora}`
+                : 'N/A';
 
             container.innerHTML = `
             <div class="stats-grid">
                 <div class="stat-card">
                     <h3>Clase Más Popular</h3>
-                    <div class="stat-value">${stats.clase_mas_popular?.nombre || 'N/A'}</div>
-                    <div class="stat-label">${stats.clase_mas_popular?.total_reservas || 0} reservas</div>
+                    <div class="stat-value">${stats.clase_popular?.clase || 'N/A'}</div>
+                    <div class="stat-label">${stats.clase_popular?.reservas || 0} reservas</div>
                 </div>
                 
                 <div class="stat-card">
                     <h3>Franja Horaria Top</h3>
-                    <div class="stat-value">${stats.franja_horaria_popular || 'N/A'}</div>
-                    <div class="stat-label">Mayor cantidad de reservas</div>
+                    <div class="stat-value">${franjaHoraria}</div>
+                    <div class="stat-label">${stats.horario_concurrido?.reservas || 0} reservas</div>
                 </div>
                 
                 <div class="stat-card">
                     <h3>Plan con Más Ingresos</h3>
-                    <div class="stat-value">${stats.plan_mayor_ingreso?.titulo || 'N/A'}</div>
-                    <div class="stat-label">$${stats.plan_mayor_ingreso?.ingresos || 0}</div>
+                    <div class="stat-value">${stats.plan_ingresos?.plan || 'N/A'}</div>
+                    <div class="stat-label">$${stats.plan_ingresos?.ingresos?.toLocaleString('es-AR') || 0}</div>
                 </div>
                 
                 <div class="stat-card">
                     <h3>Tasa de Presentismo</h3>
                     <div class="stat-value">${stats.tasa_presentismo || 0}%</div>
-                    <div class="stat-label">Asistencia promedio</div>
+                    <div class="stat-label">Ocupación de clases</div>
                 </div>
             </div>
             

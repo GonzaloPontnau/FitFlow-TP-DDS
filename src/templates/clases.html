@@ -6,12 +6,32 @@
 <div class="card">
     <div class="card-header">
         <h2 class="card-title">Clases Disponibles</h2>
-        <div>
-            <label style="display: inline-block; margin-right: 1rem;">
-                <input type="checkbox" id="mostrarOcupadas" onchange="cargarClases()">
-                Mostrar clases ocupadas
-            </label>
+        {% if session.get('admin_logged_in') %}
+        <div class="header-actions">
+            <button class="btn btn-secondary" onclick="openModal('modalNuevoEntrenador')">
+                + Entrenador
+            </button>
+            <button class="btn btn-secondary" onclick="openModal('modalNuevoHorario')">
+                + Horario
+            </button>
+            <button class="btn btn-primary" onclick="openModal('modalNuevaClase')">
+                + Nueva Clase
+            </button>
         </div>
+        {% endif %}
+    </div>
+    
+    <div style="margin-bottom: 1rem;">
+        <label style="display: inline-block;">
+            <input type="checkbox" id="mostrarOcupadas" onchange="cargarClases()">
+            Mostrar clases ocupadas
+        </label>
+        {% if session.get('admin_logged_in') %}
+        <label style="display: inline-block; margin-left: 1rem;">
+            <input type="checkbox" id="mostrarInactivas" onchange="cargarClases()">
+            Mostrar clases inactivas
+        </label>
+        {% endif %}
     </div>
     
     <div id="clases-list">
@@ -21,19 +41,237 @@
         </div>
     </div>
 </div>
+
+{% if session.get('admin_logged_in') %}
+<!-- Modal Nueva Clase -->
+<div id="modalNuevaClase" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Nueva Clase</h3>
+            <button class="modal-close" onclick="closeModal('modalNuevaClase')">&times;</button>
+        </div>
+        <form id="formNuevaClase" onsubmit="crearClase(event)">
+            <div class="form-group">
+                <label>Titulo *</label>
+                <input type="text" name="titulo" required>
+            </div>
+            <div class="form-group">
+                <label>Descripcion *</label>
+                <textarea name="descripcion" required rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Cupo Maximo *</label>
+                <input type="number" name="cupo_maximo" required min="1" value="20">
+            </div>
+            <div class="form-group">
+                <label>Entrenador *</label>
+                <select name="entrenador_id" id="entrenadorSelect" required>
+                    <option value="">Seleccione un entrenador...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Horario *</label>
+                <select name="horario_id" id="horarioSelect" required>
+                    <option value="">Seleccione un horario...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" name="tiene_lista_espera">
+                    Habilitar lista de espera
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary">Crear Clase</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Editar Clase -->
+<div id="modalEditarClase" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Editar Clase</h3>
+            <button class="modal-close" onclick="closeModal('modalEditarClase')">&times;</button>
+        </div>
+        <form id="formEditarClase" onsubmit="actualizarClase(event)">
+            <input type="hidden" name="id" id="editClaseId">
+            <div class="form-group">
+                <label>Titulo *</label>
+                <input type="text" name="titulo" id="editTitulo" required>
+            </div>
+            <div class="form-group">
+                <label>Descripcion *</label>
+                <textarea name="descripcion" id="editDescripcion" required rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Cupo Maximo *</label>
+                <input type="number" name="cupo_maximo" id="editCupoMaximo" required min="1">
+            </div>
+            <div class="form-group">
+                <label>Entrenador *</label>
+                <select name="entrenador_id" id="editEntrenadorSelect" required>
+                    <option value="">Seleccione un entrenador...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Horario *</label>
+                <select name="horario_id" id="editHorarioSelect" required>
+                    <option value="">Seleccione un horario...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" name="activa" id="editActiva">
+                    Clase activa
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Nuevo Entrenador -->
+<div id="modalNuevoEntrenador" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Nuevo Entrenador</h3>
+            <button class="modal-close" onclick="closeModal('modalNuevoEntrenador')">&times;</button>
+        </div>
+        <form id="formNuevoEntrenador" onsubmit="crearEntrenador(event)">
+            <div class="form-group">
+                <label>Nombre *</label>
+                <input type="text" name="nombre" required>
+            </div>
+            <div class="form-group">
+                <label>Apellido *</label>
+                <input type="text" name="apellido" required>
+            </div>
+            <div class="form-group">
+                <label>Email *</label>
+                <input type="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label>Especialidad</label>
+                <input type="text" name="especialidad" placeholder="Ej: Spinning, Yoga, CrossFit">
+            </div>
+            <button type="submit" class="btn btn-primary">Crear Entrenador</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Nuevo Horario -->
+<div id="modalNuevoHorario" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Nuevo Horario</h3>
+            <button class="modal-close" onclick="closeModal('modalNuevoHorario')">&times;</button>
+        </div>
+        <form id="formNuevoHorario" onsubmit="crearHorario(event)">
+            <div class="form-group">
+                <label>Dia de la semana *</label>
+                <select name="dia" required>
+                    <option value="">Seleccione un dia...</option>
+                    <option value="lunes">Lunes</option>
+                    <option value="martes">Martes</option>
+                    <option value="miercoles">Miercoles</option>
+                    <option value="jueves">Jueves</option>
+                    <option value="viernes">Viernes</option>
+                    <option value="sabado">Sabado</option>
+                    <option value="domingo">Domingo</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Hora de inicio *</label>
+                <input type="time" name="hora_inicio" required>
+            </div>
+            <div class="form-group">
+                <label>Hora de fin *</label>
+                <input type="time" name="hora_fin" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Crear Horario</button>
+        </form>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
 <script>
+// Variables globales para datos
+let entrenadores = [];
+let horarios = [];
+const isAdmin = {{ 'true' if session.get('admin_logged_in') else 'false' }};
+
+// Cargar entrenadores
+async function cargarEntrenadores() {
+    try {
+        const data = await apiRequest('/api/clases/entrenadores');
+        entrenadores = data.data || [];
+        
+        const selects = ['entrenadorSelect', 'editEntrenadorSelect'];
+        selects.forEach(selectId => {
+            const select = document.getElementById(selectId);
+            if (select) {
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">Seleccione un entrenador...</option>';
+                entrenadores.forEach(e => {
+                    const option = document.createElement('option');
+                    option.value = e.id;
+                    option.textContent = `${e.nombre} - ${e.especialidad || 'Sin especialidad'}`;
+                    select.appendChild(option);
+                });
+                if (currentValue) select.value = currentValue;
+            }
+        });
+    } catch (error) {
+        console.error('Error cargando entrenadores:', error);
+    }
+}
+
+// Cargar horarios
+async function cargarHorarios() {
+    try {
+        const data = await apiRequest('/api/clases/horarios');
+        horarios = data.data || [];
+        
+        const selects = ['horarioSelect', 'editHorarioSelect'];
+        selects.forEach(selectId => {
+            const select = document.getElementById(selectId);
+            if (select) {
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">Seleccione un horario...</option>';
+                horarios.forEach(h => {
+                    const option = document.createElement('option');
+                    option.value = h.id;
+                    option.textContent = `${capitalize(h.dia)} ${h.hora_inicio} - ${h.hora_fin} (${h.duracion} min)`;
+                    select.appendChild(option);
+                });
+                if (currentValue) select.value = currentValue;
+            }
+        });
+    } catch (error) {
+        console.error('Error cargando horarios:', error);
+    }
+}
+
+function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 // Cargar lista de clases
 async function cargarClases() {
     try {
         const mostrarOcupadas = document.getElementById('mostrarOcupadas').checked;
-        const params = mostrarOcupadas ? '' : '?con_cupo=true';
-        const data = await apiRequest(`/api/clases${params}`);
-        const container = document.getElementById('clases-list');
+        const mostrarInactivasEl = document.getElementById('mostrarInactivas');
+        const mostrarInactivas = mostrarInactivasEl ? mostrarInactivasEl.checked : false;
         
-        // La API devuelve data.data, no data.clases
+        let url = '/api/clases';
+        if (!mostrarOcupadas) {
+            url += '?con_cupo=true';
+        }
+        
+        const data = await apiRequest(url);
+        const container = document.getElementById('clases-list');
         const clases = data.data || [];
         
         if (clases.length === 0) {
@@ -41,67 +279,291 @@ async function cargarClases() {
             return;
         }
         
-        container.innerHTML = `
-            <div class="grid">
-                ${clases.map(clase => {
-                    const cupoDisponible = clase.cupos_disponibles || 0;
-                    const cupoTotal = clase.cupo_maximo || 0;
-                    const cupoOcupado = cupoTotal - cupoDisponible;
-                    const porcentaje = cupoTotal > 0 ? ((cupoOcupado / cupoTotal) * 100).toFixed(0) : 0;
-                    
-                    return `
-                        <div class="grid-item">
-                            <h3 style="margin-bottom: 0.5rem; color: var(--primary-color);">
-                                ${clase.titulo}
-                            </h3>
-                            <p style="color: var(--text-muted); margin-bottom: 1rem;">
-                                ${clase.descripcion || 'Sin descripción'}
-                            </p>
-                            
-                            <div style="margin-bottom: 1rem;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                    <span><strong>Entrenador:</strong></span>
-                                    <span>${clase.entrenador || 'N/A'}</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                    <span><strong>Horario:</strong></span>
-                                    <span>${clase.dia || 'N/A'} ${clase.hora_inicio || ''}</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                    <span><strong>Duración:</strong></span>
-                                    <span>${clase.duracion || 0} minutos</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                    <span><strong>Cupo:</strong></span>
-                                    <span>${cupoOcupado} / ${cupoTotal}</span>
-                                </div>
-                                <div style="margin-top: 0.5rem;">
-                                    <div style="background-color: var(--border-color); height: 8px; border-radius: 4px; overflow: hidden;">
-                                        <div style="background-color: ${porcentaje >= 90 ? 'var(--danger-color)' : porcentaje >= 70 ? 'var(--warning-color)' : 'var(--secondary-color)'}; 
-                                                    height: 100%; width: ${porcentaje}%; transition: width 0.3s;"></div>
+        // Vista diferente para admin vs visitante
+        if (isAdmin) {
+            container.innerHTML = `
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Titulo</th>
+                                <th>Entrenador</th>
+                                <th>Horario</th>
+                                <th>Cupo</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${clases.map(clase => {
+                                const cupoDisponible = clase.cupos_disponibles || 0;
+                                const cupoTotal = clase.cupo_maximo || 0;
+                                const cupoOcupado = cupoTotal - cupoDisponible;
+                                
+                                return `
+                                    <tr>
+                                        <td>${clase.id}</td>
+                                        <td>
+                                            <strong>${clase.titulo}</strong>
+                                            <br><small style="color: var(--text-muted);">${clase.descripcion || ''}</small>
+                                        </td>
+                                        <td>${clase.entrenador || 'N/A'}</td>
+                                        <td>${capitalize(clase.dia || '')} ${clase.hora_inicio || ''}<br><small>${clase.duracion || 0} min</small></td>
+                                        <td>
+                                            ${cupoOcupado} / ${cupoTotal}
+                                            <br>
+                                            ${clase.tiene_cupo 
+                                                ? `<span class="badge badge-success">${cupoDisponible} libres</span>`
+                                                : '<span class="badge badge-danger">Lleno</span>'}
+                                        </td>
+                                        <td>
+                                            ${clase.activa !== false 
+                                                ? '<span class="badge badge-success">Activa</span>'
+                                                : '<span class="badge badge-danger">Inactiva</span>'}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-secondary" onclick="editarClase(${clase.id})">Editar</button>
+                                            <button class="btn btn-sm btn-danger" onclick="eliminarClase(${clase.id})">Eliminar</button>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        } else {
+            // Vista para visitantes - solo visualizacion en cards
+            container.innerHTML = `
+                <div class="grid">
+                    ${clases.map(clase => {
+                        const cupoDisponible = clase.cupos_disponibles || 0;
+                        const cupoTotal = clase.cupo_maximo || 0;
+                        const cupoOcupado = cupoTotal - cupoDisponible;
+                        const porcentaje = cupoTotal > 0 ? ((cupoOcupado / cupoTotal) * 100).toFixed(0) : 0;
+                        
+                        return `
+                            <div class="grid-item">
+                                <h3 style="margin-bottom: 0.5rem; color: var(--primary-color);">
+                                    ${clase.titulo}
+                                </h3>
+                                <p style="color: var(--text-muted); margin-bottom: 1rem;">
+                                    ${clase.descripcion || 'Sin descripcion'}
+                                </p>
+                                
+                                <div style="margin-bottom: 1rem;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                        <span><strong>Entrenador:</strong></span>
+                                        <span>${clase.entrenador || 'N/A'}</span>
                                     </div>
-                                    <small style="color: var(--text-muted);">${porcentaje}% ocupado</small>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                        <span><strong>Horario:</strong></span>
+                                        <span>${capitalize(clase.dia || '')} ${clase.hora_inicio || ''}</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                        <span><strong>Duracion:</strong></span>
+                                        <span>${clase.duracion || 0} minutos</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                        <span><strong>Cupo:</strong></span>
+                                        <span>${cupoOcupado} / ${cupoTotal}</span>
+                                    </div>
+                                    <div style="margin-top: 0.5rem;">
+                                        <div style="background-color: var(--border-color); height: 8px; border-radius: 4px; overflow: hidden;">
+                                            <div style="background-color: ${porcentaje >= 90 ? 'var(--danger-color)' : porcentaje >= 70 ? 'var(--warning-color)' : 'var(--secondary-color)'}; 
+                                                        height: 100%; width: ${porcentaje}%; transition: width 0.3s;"></div>
+                                        </div>
+                                        <small style="color: var(--text-muted);">${porcentaje}% ocupado</small>
+                                    </div>
                                 </div>
+                                
+                                ${cupoDisponible > 0 
+                                    ? `<span class="badge badge-success">${cupoDisponible} lugares disponibles</span>`
+                                    : `<span class="badge badge-danger">Sin cupo</span>`
+                                }
                             </div>
-                            
-                            ${cupoDisponible > 0 
-                                ? `<span class="badge badge-success">${cupoDisponible} lugares disponibles</span>`
-                                : `<span class="badge badge-danger">Sin cupo</span>`
-                            }
-                        </div>
-                    `;
-                }).join('')}
-            </div>
-        `;
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
     } catch (error) {
         const container = document.getElementById('clases-list');
         container.innerHTML = '<div class="alert alert-error">Error al cargar clases</div>';
     }
 }
 
+// Crear nueva clase
+async function crearClase(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    const clase = {
+        titulo: formData.get('titulo'),
+        descripcion: formData.get('descripcion'),
+        cupo_maximo: parseInt(formData.get('cupo_maximo')),
+        entrenador_id: parseInt(formData.get('entrenador_id')),
+        horario_id: parseInt(formData.get('horario_id')),
+        tiene_lista_espera: formData.get('tiene_lista_espera') === 'on'
+    };
+    
+    try {
+        await apiRequest('/api/clases', {
+            method: 'POST',
+            body: JSON.stringify(clase)
+        });
+        
+        showAlert('Clase creada exitosamente', 'success');
+        closeModal('modalNuevaClase');
+        form.reset();
+        cargarClases();
+    } catch (error) {
+        console.error('Error creando clase:', error);
+    }
+}
+
+// Editar clase - abrir modal
+async function editarClase(id) {
+    try {
+        const data = await apiRequest(`/api/clases/${id}`);
+        const clase = data.data;
+        
+        document.getElementById('editClaseId').value = clase.id;
+        document.getElementById('editTitulo').value = clase.titulo;
+        document.getElementById('editDescripcion').value = clase.descripcion;
+        document.getElementById('editCupoMaximo').value = clase.cupos.maximo;
+        document.getElementById('editActiva').checked = clase.activa;
+        
+        // Cargar selects y establecer valores
+        await Promise.all([cargarEntrenadores(), cargarHorarios()]);
+        
+        document.getElementById('editEntrenadorSelect').value = clase.entrenador.id;
+        
+        // Buscar horario por dia y hora
+        const horarioMatch = horarios.find(h => 
+            h.dia === clase.horario.dia && 
+            h.hora_inicio === clase.horario.hora_inicio
+        );
+        if (horarioMatch) {
+            document.getElementById('editHorarioSelect').value = horarioMatch.id;
+        }
+        
+        openModal('modalEditarClase');
+    } catch (error) {
+        console.error('Error obteniendo clase:', error);
+        showAlert('Error al cargar datos de la clase', 'error');
+    }
+}
+
+// Actualizar clase
+async function actualizarClase(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    const id = formData.get('id');
+    
+    const clase = {
+        titulo: formData.get('titulo'),
+        descripcion: formData.get('descripcion'),
+        cupo_maximo: parseInt(formData.get('cupo_maximo')),
+        entrenador_id: parseInt(formData.get('entrenador_id')),
+        horario_id: parseInt(formData.get('horario_id')),
+        activa: formData.get('activa') === 'on'
+    };
+    
+    try {
+        await apiRequest(`/api/clases/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(clase)
+        });
+        
+        showAlert('Clase actualizada exitosamente', 'success');
+        closeModal('modalEditarClase');
+        cargarClases();
+    } catch (error) {
+        console.error('Error actualizando clase:', error);
+    }
+}
+
+// Eliminar clase
+async function eliminarClase(id) {
+    if (!confirm('Esta seguro de eliminar esta clase? Se desactivara y no estara disponible.')) return;
+    
+    try {
+        await apiRequest(`/api/clases/${id}`, { method: 'DELETE' });
+        showAlert('Clase eliminada correctamente', 'success');
+        cargarClases();
+    } catch (error) {
+        console.error('Error eliminando clase:', error);
+    }
+}
+
+// Crear entrenador
+async function crearEntrenador(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    const entrenador = {
+        nombre: formData.get('nombre'),
+        apellido: formData.get('apellido'),
+        email: formData.get('email'),
+        especialidad: formData.get('especialidad') || ''
+    };
+    
+    try {
+        await apiRequest('/api/clases/entrenadores', {
+            method: 'POST',
+            body: JSON.stringify(entrenador)
+        });
+        
+        showAlert('Entrenador creado exitosamente', 'success');
+        closeModal('modalNuevoEntrenador');
+        form.reset();
+        cargarEntrenadores();
+    } catch (error) {
+        console.error('Error creando entrenador:', error);
+    }
+}
+
+// Crear horario
+async function crearHorario(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    const horario = {
+        dia: formData.get('dia'),
+        hora_inicio: formData.get('hora_inicio'),
+        hora_fin: formData.get('hora_fin')
+    };
+    
+    try {
+        await apiRequest('/api/clases/horarios', {
+            method: 'POST',
+            body: JSON.stringify(horario)
+        });
+        
+        showAlert('Horario creado exitosamente', 'success');
+        closeModal('modalNuevoHorario');
+        form.reset();
+        cargarHorarios();
+    } catch (error) {
+        console.error('Error creando horario:', error);
+    }
+}
+
 // Inicializar
 document.addEventListener('DOMContentLoaded', () => {
     cargarClases();
+    cargarEntrenadores();
+    cargarHorarios();
 });
 </script>
 {% endblock %}

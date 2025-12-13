@@ -1,4 +1,5 @@
 """Controlador REST para Clases"""
+from datetime import time as dt_time
 from flask import Blueprint, request, jsonify
 from src.services.clase_service import ClaseService
 from src.services.lista_espera_service import ListaEsperaService
@@ -8,12 +9,157 @@ from src.utils.enums import DiaSemana
 from src.repositories.base_repository import BaseRepository
 from src.models.entrenador import Entrenador
 from src.models.horario import Horario
+from src.config.database import db
 
 logger = get_logger(__name__)
 
 clase_bp = Blueprint('clases', __name__, url_prefix='/api/clases')
 clase_service = ClaseService()
 lista_espera_service = ListaEsperaService()
+
+
+@clase_bp.route('/entrenadores', methods=['GET'])
+@handle_errors
+def listar_entrenadores():
+    """
+    Lista todos los entrenadores activos.
+    
+    Returns:
+        200: Lista de entrenadores
+    """
+    entrenadores = Entrenador.query.filter_by(activo=True).all()
+    
+    return jsonify({
+        'success': True,
+        'count': len(entrenadores),
+        'data': [
+            {
+                'id': e.id,
+                'nombre': e.nombre_completo,
+                'especialidad': e.especialidad
+            }
+            for e in entrenadores
+        ]
+    }), 200
+
+
+@clase_bp.route('/entrenadores', methods=['POST'])
+@handle_errors
+@validate_json('nombre', 'apellido', 'email')
+def crear_entrenador():
+    """
+    Crea un nuevo entrenador.
+    
+    Returns:
+        201: Entrenador creado
+    """
+    data = request.get_json()
+    
+    entrenador = Entrenador(
+        nombre=data['nombre'],
+        apellido=data['apellido'],
+        email=data['email'],
+        especialidad=data.get('especialidad', '')
+    )
+    
+    db.session.add(entrenador)
+    db.session.commit()
+    
+    logger.info(f"Entrenador creado: {entrenador.id} - {entrenador.nombre_completo}")
+    
+    return jsonify({
+        'success': True,
+        'message': 'Entrenador creado exitosamente',
+        'data': {
+            'id': entrenador.id,
+            'nombre': entrenador.nombre_completo,
+            'especialidad': entrenador.especialidad
+        }
+    }), 201
+
+
+@clase_bp.route('/horarios', methods=['GET'])
+@handle_errors
+def listar_horarios():
+    """
+    Lista todos los horarios disponibles.
+    
+    Returns:
+        200: Lista de horarios
+    """
+    horarios = Horario.query.all()
+    
+    return jsonify({
+        'success': True,
+        'count': len(horarios),
+        'data': [
+            {
+                'id': h.id,
+                'dia': h.dia_semana.value,
+                'hora_inicio': h.hora_inicio.strftime('%H:%M'),
+                'hora_fin': h.hora_fin.strftime('%H:%M'),
+                'duracion': h.duracion_minutos()
+            }
+            for h in horarios
+        ]
+    }), 200
+
+
+@clase_bp.route('/horarios', methods=['POST'])
+@handle_errors
+@validate_json('dia', 'hora_inicio', 'hora_fin')
+def crear_horario():
+    """
+    Crea un nuevo horario.
+    
+    Returns:
+        201: Horario creado
+    """
+    data = request.get_json()
+    
+    try:
+        dia_enum = DiaSemana(data['dia'].lower())
+    except ValueError:
+        return jsonify({
+            'success': False,
+            'message': f"Dia invalido: {data['dia']}. Use: lunes, martes, miercoles, jueves, viernes, sabado, domingo"
+        }), 400
+    
+    # Parsear horas
+    try:
+        inicio_parts = data['hora_inicio'].split(':')
+        fin_parts = data['hora_fin'].split(':')
+        hora_inicio = dt_time(int(inicio_parts[0]), int(inicio_parts[1]))
+        hora_fin = dt_time(int(fin_parts[0]), int(fin_parts[1]))
+    except (ValueError, IndexError):
+        return jsonify({
+            'success': False,
+            'message': 'Formato de hora invalido. Use HH:MM'
+        }), 400
+    
+    try:
+        horario = Horario(dia_semana=dia_enum, hora_inicio=hora_inicio, hora_fin=hora_fin)
+    except ValueError as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 400
+    
+    db.session.add(horario)
+    db.session.commit()
+    
+    logger.info(f"Horario creado: {horario.id} - {horario.dia_semana.value} {horario.hora_inicio}")
+    
+    return jsonify({
+        'success': True,
+        'message': 'Horario creado exitosamente',
+        'data': {
+            'id': horario.id,
+            'dia': horario.dia_semana.value,
+            'hora_inicio': horario.hora_inicio.strftime('%H:%M'),
+            'hora_fin': horario.hora_fin.strftime('%H:%M')
+        }
+    }), 201
 
 
 @clase_bp.route('', methods=['GET'])

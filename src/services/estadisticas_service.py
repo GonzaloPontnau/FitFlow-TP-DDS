@@ -38,20 +38,49 @@ class EstadisticasService:
         
         return {"plan": result[0], "ingresos": float(result[1])} if result else None
 
-    def get_tasa_asistencia(self):
-        """Calcula el porcentaje de reservas confirmadas sobre el total"""
-        total = db.session.query(func.count(Reserva.id)).scalar()
-        confirmadas = db.session.query(func.count(Reserva.id)).filter(Reserva.confirmada == True).scalar()
+    def get_tasa_presentismo(self):
+        """
+        Calcula la tasa de presentismo (asistencia) de las clases.
+        Fórmula: (reservas confirmadas / cupo total disponible) * 100
+        """
+        # Total de reservas activas
+        reservas_activas = db.session.query(func.count(Reserva.id)).filter(
+            Reserva.confirmada == True
+        ).scalar() or 0
         
-        if total == 0:
+        # Cupo total de todas las clases activas
+        clases = db.session.query(Clase).filter(Clase.activa == True).all()
+        cupo_total = sum(c.cupo_maximo for c in clases) if clases else 0
+        
+        if cupo_total == 0:
             return 0.0
-        return round((confirmadas / total) * 100, 2)
+        
+        # Tasa como porcentaje del cupo utilizado
+        tasa = (reservas_activas / cupo_total) * 100
+        return round(min(tasa, 100), 1)  # Máximo 100%
+
+    def get_totales(self):
+        """Obtiene conteos totales para el dashboard"""
+        total_socios = db.session.query(func.count(Socio.id)).scalar() or 0
+        total_clases = db.session.query(func.count(Clase.id)).filter(Clase.activa == True).scalar() or 0
+        total_reservas = db.session.query(func.count(Reserva.id)).filter(Reserva.confirmada == True).scalar() or 0
+        total_planes = db.session.query(func.count(PlanMembresia.id)).filter(PlanMembresia.activo == True).scalar() or 0
+        
+        return {
+            "total_socios": total_socios,
+            "total_clases": total_clases,
+            "total_reservas": total_reservas,
+            "total_planes": total_planes
+        }
 
     def get_dashboard_stats(self):
         """Obtiene todas las estadísticas para el dashboard"""
+        totales = self.get_totales()
+        
         return {
             "clase_popular": self.get_clase_mas_popular(),
             "horario_concurrido": self.get_horario_mas_concurrido(),
             "plan_ingresos": self.get_plan_mayor_ingresos(),
-            "tasa_asistencia": self.get_tasa_asistencia()
+            "tasa_presentismo": self.get_tasa_presentismo(),
+            **totales
         }

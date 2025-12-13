@@ -1,5 +1,6 @@
 """Punto de entrada principal de la aplicación FitFlow"""
-from flask import Flask, jsonify, render_template
+from functools import wraps
+from flask import Flask, jsonify, render_template, session, redirect, url_for, request
 from src.config.database import init_db
 from src.config.settings import settings
 from src.core.logging_config import setup_logging, get_logger
@@ -28,7 +29,11 @@ def create_app():
     app = Flask(__name__)
     
     # Configuración desde settings centralizados
-    app.config['SECRET_KEY'] = settings.app.secret_key
+    # Usar UUID para que las sesiones expiren al reiniciar el servidor
+    import uuid
+    runtime_secret = f"{settings.app.secret_key}_{uuid.uuid4()}"
+    app.config['SECRET_KEY'] = runtime_secret
+    app.config['SESSION_PERMANENT'] = False  # Sesión expira al cerrar navegador
     app.config['DEBUG'] = settings.app.debug
     app.config['TESTING'] = settings.app.testing
     app.config['SQLALCHEMY_DATABASE_URI'] = settings.database.url
@@ -118,51 +123,97 @@ def create_app():
             logger.warning(f"Acceso denegado a IP bloqueada: {request.remote_addr}")
             abort(403, description="Acceso denegado: IP bloqueada")
     
+    # Decorador para requerir login de admin
+    def admin_required(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not session.get('admin_logged_in'):
+                return redirect(url_for('login_page'))
+            return f(*args, **kwargs)
+        return decorated_function
+    
     # Rutas Web (templates HTML)
+    # ===== PAGINAS PUBLICAS (visualizacion sin login) =====
     @app.route('/')
     def index():
-        """Página principal"""
+        """Página principal - pública"""
         return render_template('index.html')
-    
-    @app.route('/socios')
-    def socios_page():
-        """Página de gestión de socios"""
-        return render_template('socios.html')
     
     @app.route('/clases')
     def clases_page():
-        """Página de gestión de clases"""
+        """Página de clases - pública para visualización"""
         return render_template('clases.html')
     
     @app.route('/planes')
     def planes_page():
-        """Página de planes de membresía"""
+        """Página de planes de membresía - pública para visualización"""
         return render_template('planes.html')
-    
-    @app.route('/reservas')
-    def reservas_page():
-        """Página de gestión de reservas"""
-        return render_template('reservas.html')
     
     @app.route('/calendario')
     def calendario_page():
-        """Página del calendario de clases"""
+        """Página del calendario de clases - pública para visualización"""
         return render_template('calendario.html')
     
+    # ===== PAGINAS PROTEGIDAS (requieren login de admin) =====
+    @app.route('/socios')
+    @admin_required
+    def socios_page():
+        """Página de gestión de socios - requiere login"""
+        return render_template('socios.html')
+    
+    @app.route('/reservas')
+    @admin_required
+    def reservas_page():
+        """Página de gestión de reservas - requiere login"""
+        return render_template('reservas.html')
+    
     @app.route('/admin')
+    @admin_required
     def admin_page():
-        """Panel de administración"""
+        """Panel de administración - requiere login"""
         return render_template('admin.html')
     
     @app.route('/estadisticas/dashboard')
+    @admin_required
     def estadisticas_page():
-        """Dashboard de estadísticas"""
+        """Dashboard de estadísticas - requiere login"""
         return render_template('estadisticas.html')
     
     @app.route('/solicitudes')
+    @admin_required
     def solicitudes_page():
-        """Gestión de solicitudes de baja"""
+        """Gestión de solicitudes de baja - requiere login"""
         return render_template('solicitudes.html')
+    
+    # Credenciales de admin (en producción usar DB o env vars)
+    ADMIN_USERNAME = 'admin'
+    ADMIN_PASSWORD = 'admin123'
+    
+    @app.route('/login', methods=['GET', 'POST'])
+    def login_page():
+        """Página de login de administrador"""
+        if request.method == 'POST':
+            username = request.form.get('username')
+            password = request.form.get('password')
+            
+            if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+                session['admin_logged_in'] = True
+                session['admin_username'] = username
+                logger.info(f"Admin {username} inició sesión")
+                return redirect(url_for('admin_page'))
+            else:
+                logger.warning(f"Intento de login fallido para usuario: {username}")
+                return render_template('login.html', error='Usuario o contraseña incorrectos')
+        
+        return render_template('login.html')
+    
+    @app.route('/logout')
+    def logout():
+        """Cerrar sesión de administrador"""
+        username = session.get('admin_username', 'Unknown')
+        session.clear()
+        logger.info(f"Admin {username} cerró sesión")
+        return redirect(url_for('index'))
     
     # API Endpoints informativos
     @app.route('/api')
@@ -284,12 +335,14 @@ def init_database():
         # Crear entrenadores
         entrenador1 = Entrenador(
             "Carlos",
-            "Rodríguez",
+            "Rodriguez",
+            "carlos.rodriguez@fitflow.com",
             "Instructor de Spinning"
         )
         entrenador2 = Entrenador(
-            "María",
-            "García",
+            "Maria",
+            "Garcia",
+            "maria.garcia@fitflow.com",
             "Profesora de Yoga"
         )
         
