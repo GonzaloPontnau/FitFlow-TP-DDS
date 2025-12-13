@@ -13,6 +13,33 @@ class SolicitudBajaService:
         self.solicitud_repo = SolicitudBajaRepository()
         self.socio_repo = SocioRepository()
     
+    def crear_solicitud_publica(self, dni: str, email: str, justificacion: str) -> SolicitudBaja:
+        """
+        Crea una solicitud de baja verificando identidad por DNI y Email.
+        
+        Args:
+            dni: DNI del socio
+            email: Email del socio
+            justificacion: Motivo de la baja
+            
+        Returns:
+            La solicitud creada
+            
+        Raises:
+            ValueError: Si los datos no coinciden con ningún socio
+        """
+        # Buscar socio por DNI
+        socio = self.socio_repo.find_by_dni(dni)
+        if not socio:
+            raise ValueError("No se encontró un socio con ese DNI")
+            
+        # Verificar email (case insensitive)
+        if socio.email.lower() != email.lower():
+            raise ValueError("El email proporcionado no coincide con nuestros registros")
+            
+        # Usar el método existente para crear la solicitud
+        return self.crear_solicitud(socio.id, justificacion)
+
     def crear_solicitud(self, socio_id: int, justificacion: str) -> SolicitudBaja:
         """
         Crea una nueva solicitud de baja.

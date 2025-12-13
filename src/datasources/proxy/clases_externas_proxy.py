@@ -135,6 +135,17 @@ class ClasesExternasProxy(BaseProxy):
             print(f"[ClasesExternasProxy] Error al verificar disponibilidad: {str(e)}")
             return False
     
+    # Horarios predefinidos para cada día (para datos consistentes)
+    HORARIOS_POR_DIA = {
+        0: [time(hour=8, minute=0), time(hour=19, minute=0)],   # Lunes
+        1: [time(hour=10, minute=30), time(hour=18, minute=0)], # Martes
+        2: [time(hour=9, minute=0), time(hour=20, minute=0)],   # Miércoles
+        3: [time(hour=7, minute=30), time(hour=17, minute=30)], # Jueves
+        4: [time(hour=16, minute=0), time(hour=19, minute=30)], # Viernes
+        5: [time(hour=10, minute=0), time(hour=12, minute=0)],  # Sábado
+        6: [time(hour=11, minute=0)],                            # Domingo
+    }
+    
     def obtener_clases_disponibles(self, fecha_desde: datetime = None, 
                                     fecha_hasta: datetime = None) -> List[ClaseExterna]:
         """
@@ -164,21 +175,24 @@ class ClasesExternasProxy(BaseProxy):
                   f"hasta {fecha_hasta.date()}...")
             
             clases = []
-            # Simular generación de talleres para los próximos días
+            # Generar talleres de forma determinística para cada día
             dias = (fecha_hasta - fecha_desde).days + 1
             
             for dia in range(dias):
                 fecha = fecha_desde + timedelta(days=dia)
+                dia_semana = fecha.weekday()  # 0=Lunes, 6=Domingo
                 
-                # Generar 0-1 talleres por día (menos clases externas)
-                if random.random() > 0.5:  # 50% de probabilidad de tener taller
-                    continue
-                num_talleres = 1
-                talleres_dia = random.sample(self.TALLERES_SIMULADOS, 
-                                            min(num_talleres, len(self.TALLERES_SIMULADOS)))
+                # Seleccionar talleres según el día de la semana (determinístico)
+                indice_taller = dia_semana % len(self.TALLERES_SIMULADOS)
+                taller = self.TALLERES_SIMULADOS[indice_taller]
                 
-                for taller in talleres_dia:
-                    clase = self._generar_clase_externa(taller, fecha)
+                # Generar una clase por cada horario predefinido para el día
+                horarios = self.HORARIOS_POR_DIA.get(dia_semana, [time(hour=10, minute=0)])
+                for i, hora in enumerate(horarios):
+                    # Usar diferente taller si hay más de un horario
+                    taller_idx = (indice_taller + i) % len(self.TALLERES_SIMULADOS)
+                    taller_actual = self.TALLERES_SIMULADOS[taller_idx]
+                    clase = self._generar_clase_externa_deterministica(taller_actual, fecha, hora)
                     clases.append(clase)
             
             print(f"[ClasesExternasProxy] {len(clases)} clases obtenidas")
@@ -300,6 +314,50 @@ class ClasesExternasProxy(BaseProxy):
         # Simular ocupación (30-90% del cupo)
         cupo_maximo = taller['cupo']
         cupos_ocupados = random.randint(int(cupo_maximo * 0.3), int(cupo_maximo * 0.9))
+        
+        return ClaseExterna(
+            id_externo=id_externo,
+            titulo=taller['titulo'],
+            descripcion=f"Taller especial de {taller['titulo']} impartido por {taller['instructor']}",
+            instructor=taller['instructor'],
+            fecha=fecha,
+            hora_inicio=hora_inicio,
+            hora_fin=hora_fin,
+            duracion_minutos=duracion,
+            cupo_maximo=cupo_maximo,
+            cupos_ocupados=cupos_ocupados,
+            precio=taller['precio'],
+            ubicacion=taller['ubicacion'],
+            proveedor=self.proveedor,
+            url_inscripcion=f"{self.api_url}/enroll/{id_externo}"
+        )
+    
+    def _generar_clase_externa_deterministica(self, taller: Dict, fecha: datetime, 
+                                               hora_inicio: time) -> ClaseExterna:
+        """
+        Genera un objeto ClaseExterna con datos determinísticos para demo.
+        
+        Args:
+            taller: Datos del taller
+            fecha: Fecha de la clase
+            hora_inicio: Hora de inicio predefinida
+            
+        Returns:
+            ClaseExterna
+        """
+        # ID determinístico basado en fecha y título
+        id_externo = f"EXT_{fecha.strftime('%Y%m%d')}_{taller['titulo'].replace(' ', '_')}"
+        
+        # Calcular hora de fin
+        duracion = taller['duracion']
+        hora_fin_dt = datetime.combine(fecha, hora_inicio) + timedelta(minutes=duracion)
+        hora_fin = hora_fin_dt.time()
+        
+        # Ocupación determinística basada en el día de la semana (50-70%)
+        cupo_maximo = taller['cupo']
+        dia_semana = fecha.weekday()
+        porcentaje_ocupacion = 0.5 + (dia_semana * 0.03)  # Va de 50% a 68%
+        cupos_ocupados = int(cupo_maximo * porcentaje_ocupacion)
         
         return ClaseExterna(
             id_externo=id_externo,

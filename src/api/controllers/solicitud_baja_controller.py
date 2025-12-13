@@ -124,6 +124,48 @@ def crear_solicitud():
         }), 400
 
 
+@solicitud_bp.route('/publica', methods=['POST'])
+@handle_errors
+@validate_json('dni', 'email', 'justificacion')
+def crear_solicitud_publica():
+    """
+    Endpoint PÚBLICO para crear solicitud de baja.
+    
+    Body JSON:
+        dni: DNI del socio
+        email: Email del socio
+        justificacion: Motivo de la baja
+    
+    Returns:
+        201: Solicitud creada
+        400: Datos inválidos
+    """
+    data = request.get_json()
+    
+    try:
+        solicitud = solicitud_service.crear_solicitud_publica(
+            dni=data['dni'],
+            email=data['email'],
+            justificacion=data['justificacion']
+        )
+        
+        logger.info(f"Solicitud pública creada: {solicitud.id} (DNI {data['dni']})")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Solicitud enviada correctamente',
+            'data': {
+                'id': solicitud.id,
+                'fecha_solicitud': solicitud.fecha_solicitud.isoformat()
+            }
+        }), 201
+    except ValueError as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 400
+
+
 @solicitud_bp.route('/<int:solicitud_id>/aprobar', methods=['PUT'])
 @handle_errors
 def aprobar_solicitud(solicitud_id: int):

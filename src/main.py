@@ -30,9 +30,11 @@ def create_app():
     
     # Configuración desde settings centralizados
     # Usar UUID para que las sesiones expiren al reiniciar el servidor
-    import uuid
-    runtime_secret = f"{settings.app.secret_key}_{uuid.uuid4()}"
-    app.config['SECRET_KEY'] = runtime_secret
+    # Usar UUID para que las sesiones expiren al reiniciar el servidor
+    # IMPORTANTE: Desactivado UUID dinámico porque rompe el login en waitress con múltiples workers/reinicios
+    # import uuid
+    # runtime_secret = f"{settings.app.secret_key}_{uuid.uuid4()}"
+    app.config['SECRET_KEY'] = settings.app.secret_key
     app.config['SESSION_PERMANENT'] = False  # Sesión expira al cerrar navegador
     app.config['DEBUG'] = settings.app.debug
     app.config['TESTING'] = settings.app.testing
@@ -41,6 +43,7 @@ def create_app():
     app.config['SQLALCHEMY_ECHO'] = settings.database.echo
     
     logger.info("Inicializando aplicación FitFlow...")
+    print(">>> DEBUG: LOADING MAIN.PY v2 with /solicitar-baja <<<")
     
     # Inicializar extensiones
     init_db(app)
@@ -153,6 +156,11 @@ def create_app():
     def calendario_page():
         """Página del calendario de clases - pública para visualización"""
         return render_template('calendario.html')
+
+    @app.route('/solicitar-baja')
+    def solicitar_baja_page():
+        """Página pública para solicitar baja"""
+        return render_template('solicitar_baja.html')
     
     # ===== PAGINAS PROTEGIDAS (requieren login de admin) =====
     @app.route('/socios')
@@ -185,6 +193,12 @@ def create_app():
         """Gestión de solicitudes de baja - requiere login"""
         return render_template('solicitudes.html')
     
+    @app.route('/admin/planes')
+    @admin_required
+    def admin_planes_page():
+        """Gestión de planes de membresía - requiere login"""
+        return render_template('admin_planes.html')
+    
     # Credenciales de admin (en producción usar DB o env vars)
     ADMIN_USERNAME = 'admin'
     ADMIN_PASSWORD = 'admin123'
@@ -196,12 +210,16 @@ def create_app():
             username = request.form.get('username')
             password = request.form.get('password')
             
+            print(f">>> DEBUG LOGIN: User={username}, Pass={password}, ExpectedUser={ADMIN_USERNAME}, ExpectedPass={ADMIN_PASSWORD}")
+            
             if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
                 session['admin_logged_in'] = True
                 session['admin_username'] = username
                 logger.info(f"Admin {username} inició sesión")
+                print(">>> DEBUG LOGIN: SUCCESS! Redirecting...")
                 return redirect(url_for('admin_page'))
             else:
+                print(f">>> DEBUG LOGIN: FAILED match. UserMatch={username==ADMIN_USERNAME}, PassMatch={password==ADMIN_PASSWORD}")
                 logger.warning(f"Intento de login fallido para usuario: {username}")
                 return render_template('login.html', error='Usuario o contraseña incorrectos')
         
