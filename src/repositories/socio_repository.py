@@ -57,3 +57,14 @@ class SocioRepository(BaseRepository[Socio]):
         return self.session.query(Socio).filter_by(
             estado_membresia=EstadoMembresia.ACTIVA
         ).all()
+
+    #metodo para guardar un nuevo socio
+    def create(self, socio: Socio) -> Socio:
+        """Guarda un nuevo socio en la base de datos"""
+        try:
+            self.session.add(socio)
+            self.session.commit()
+            return socio
+        except Exception as e:
+            self.session.rollback()
+            raise e

@@ -1,6 +1,7 @@
 """Controlador REST para Socios"""
 from flask import Blueprint, request, jsonify
 from src.repositories.socio_repository import SocioRepository
+from src.services.socio_service import SocioService
 from src.api.controllers.base_controller import handle_errors, paginate
 from src.core.logging_config import get_logger
 from src.exceptions.base_exceptions import NotFoundException
@@ -9,6 +10,7 @@ logger = get_logger(__name__)
 
 socio_bp = Blueprint('socios', __name__, url_prefix='/api/socios')
 socio_repository = SocioRepository()
+socio_service = SocioService()
 
 
 @socio_bp.route('', methods=['GET'])
@@ -120,3 +122,32 @@ def obtener_estadisticas_socio(socio_id: int):
         }
     }), 200
 
+@socio_bp.route('', methods=['POST'])
+@handle_errors
+def crear_socio():
+    """
+    Crea un nuevo socio.
+    Esperamos un JSON con: nombre, apellido, dni, email, plan_id (opcional)
+    """
+    data = request.get_json()
+    
+    if not data:
+        # Puedes levantar una excepción o retornar error manual
+        return jsonify({'success': False, 'message': 'No se enviaron datos JSON'}), 400
+
+    # Llamamos al SERVICIO (no al repositorio directo)
+    # El servicio se encarga de validar DNI duplicado y buscar el objeto Plan
+    nuevo_socio = socio_service.crear_socio(data)
+
+    return jsonify({
+        'success': True,
+        'message': 'Socio creado exitosamente',
+        'data': {
+            'id': nuevo_socio.id,
+            'nombre_completo': nuevo_socio.nombre_completo,
+            'dni': nuevo_socio.dni,
+            'email': nuevo_socio.email,
+            'estado': nuevo_socio.estado_membresia.value,
+            'plan': nuevo_socio.plan_membresia.titulo if nuevo_socio.plan_membresia else None
+        }
+    }), 201
