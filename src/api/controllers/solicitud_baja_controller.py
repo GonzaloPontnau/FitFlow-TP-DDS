@@ -92,7 +92,7 @@ def crear_solicitud():
     
     Body JSON:
         socio_id: ID del socio que solicita la baja
-        justificacion: Texto justificando la solicitud (mínimo 150 caracteres)
+        justificacion: Texto justificando la solicitud (mínimo 20 caracteres)
     
     Returns:
         201: Solicitud creada

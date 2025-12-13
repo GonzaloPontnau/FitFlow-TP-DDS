@@ -301,7 +301,8 @@ def obtener_clase(clase_id: int):
                 'maximo': clase.cupo_maximo,
                 'disponibles': clase.cupos_disponibles(),
                 'ocupados': clase.cupo_maximo - clase.cupos_disponibles()
-            }
+            },
+            'planes_ids': [plan.id for plan in clase.planes]
         }
     }), 200
 
@@ -320,6 +321,7 @@ def crear_clase():
         entrenador_id: ID del entrenador
         horario_id: ID del horario
         tiene_lista_espera: (opcional) Habilitar lista de espera
+        planes_ids: (opcional) Lista de IDs de planes de membresía a asociar
     
     Returns:
         201: Clase creada
@@ -355,6 +357,16 @@ def crear_clase():
         horario=horario
     )
     
+    # Asociar planes de membresía si se especifican
+    planes_ids = data.get('planes_ids', [])
+    if planes_ids:
+        from src.models.plan_membresia import PlanMembresia
+        for plan_id in planes_ids:
+            plan = db.session.get(PlanMembresia, plan_id)
+            if plan:
+                plan.agregar_clase(clase)
+        db.session.commit()
+    
     # Habilitar lista de espera si se solicita
     if data.get('tiene_lista_espera', False):
         lista_espera_service.habilitar_lista_espera(clase)
@@ -369,7 +381,8 @@ def crear_clase():
             'titulo': clase.titulo,
             'descripcion': clase.descripcion,
             'cupo_maximo': clase.cupo_maximo,
-            'tiene_lista_espera': clase.tiene_lista_espera
+            'tiene_lista_espera': clase.tiene_lista_espera,
+            'planes_asociados': len(planes_ids)
         }
     }), 201
 
@@ -440,7 +453,17 @@ def actualizar_clase(clase_id: int):
     if 'activa' in data:
         clase.activa = bool(data['activa'])
     
-    from src.config.database import db
+    # Actualizar planes de membresía si se especifican
+    if 'planes_ids' in data:
+        from src.models.plan_membresia import PlanMembresia
+        # Limpiar planes actuales
+        clase.planes = []
+        # Agregar nuevos planes
+        for plan_id in data['planes_ids']:
+            plan = db.session.get(PlanMembresia, plan_id)
+            if plan:
+                clase.planes.append(plan)
+    
     db.session.commit()
     
     logger.info(f"Clase actualizada: {clase.id} - {clase.titulo}")

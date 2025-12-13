@@ -54,7 +54,8 @@ def listar_socios(page: int, page_size: int):
                 'dni': s.dni,
                 'email': s.email,
                 'estado_membresia': s.estado_membresia.value,
-                'plan': s.plan_membresia.titulo if s.plan_membresia else None
+                'plan': s.plan_membresia.titulo if s.plan_membresia else None,
+                'plan_membresia_id': s.plan_membresia.id if s.plan_membresia else None
             }
             for s in socios
         ]
@@ -154,6 +155,76 @@ def crear_socio():
             'plan': nuevo_socio.plan_membresia.titulo if nuevo_socio.plan_membresia else None
         }
     }), 201
+
+
+@socio_bp.route('/<int:socio_id>', methods=['PUT'])
+@handle_errors
+def actualizar_socio(socio_id: int):
+    """
+    Actualiza un socio existente.
+    
+    Args:
+        socio_id: ID del socio a actualizar
+        
+    Body JSON (todos opcionales):
+        plan_membresia_id: ID del nuevo plan
+        estado_membresia: Nuevo estado de membresía
+        
+    Returns:
+        200: Socio actualizado
+        404: Socio no encontrado
+    """
+    socio = socio_repository.get_by_id(socio_id)
+    
+    if not socio:
+        raise NotFoundException('Socio', socio_id)
+    
+    data = request.get_json()
+    
+    # Actualizar plan de membresía si se especifica
+    if 'plan_membresia_id' in data:
+        from src.models.plan_membresia import PlanMembresia
+        from src.config.database import db
+        
+        plan_id = data['plan_membresia_id']
+        if plan_id:
+            plan = db.session.get(PlanMembresia, plan_id)
+            if not plan:
+                return jsonify({
+                    'success': False,
+                    'message': f'Plan con ID {plan_id} no encontrado'
+                }), 404
+            socio.plan_membresia = plan
+        else:
+            socio.plan_membresia = None
+    
+    # Actualizar estado de membresía si se especifica
+    if 'estado_membresia' in data:
+        from src.utils.enums import EstadoMembresia
+        try:
+            nuevo_estado = EstadoMembresia(data['estado_membresia'])
+            socio.estado_membresia = nuevo_estado
+        except ValueError:
+            return jsonify({
+                'success': False,
+                'message': 'Estado de membresía inválido'
+            }), 400
+    
+    from src.config.database import db
+    db.session.commit()
+    
+    logger.info(f"Socio {socio_id} actualizado")
+    
+    return jsonify({
+        'success': True,
+        'message': 'Socio actualizado exitosamente',
+        'data': {
+            'id': socio.id,
+            'nombre_completo': socio.nombre_completo,
+            'estado_membresia': socio.estado_membresia.value,
+            'plan': socio.plan_membresia.titulo if socio.plan_membresia else None
+        }
+    }), 200
 
 
 @socio_bp.route('/<int:socio_id>', methods=['DELETE'])

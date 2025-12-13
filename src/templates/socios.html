@@ -76,6 +76,36 @@
         </form>
     </div>
 </div>
+
+<!-- Modal Asignar Plan -->
+<div id="modalAsignarPlan" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Asignar Plan de Membresía</h3>
+            <button class="modal-close" onclick="closeModal('modalAsignarPlan')">&times;</button>
+        </div>
+        <form id="formAsignarPlan" onsubmit="asignarPlan(event)">
+            <input type="hidden" id="asignarSocioId" name="socio_id">
+            <div class="form-group">
+                <label>Socio</label>
+                <input type="text" id="asignarSocioNombre" disabled>
+            </div>
+            <div class="form-group">
+                <label>Plan de Membresía *</label>
+                <select name="plan_membresia_id" id="asignarPlanSelect" required>
+                    <option value="">Seleccione un plan...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" name="reactivar" id="reactivarCheck" checked>
+                    Reactivar membresía (cambiar estado a Activa)
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary">Asignar Plan</button>
+        </form>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -141,9 +171,14 @@
                     ? '<span class="badge badge-success">Activa</span>'
                     : socio.estado_membresia === 'suspendida'
                         ? '<span class="badge badge-warning">Suspendida</span>'
-                        : '<span class="badge badge-danger">Inactiva</span>'}
+                        : socio.estado_membresia === 'baja_solicitada'
+                            ? '<span class="badge badge-warning">Baja Solicitada</span>'
+                            : socio.estado_membresia === 'baja_definitiva'
+                                ? '<span class="badge badge-danger">Baja Definitiva</span>'
+                                : '<span class="badge badge-danger">Inactiva</span>'}
                                 </td>
                                 <td>
+                                    ${!socio.plan ? `<button class="btn btn-sm btn-primary" onclick="abrirAsignarPlan(${socio.id}, '${socio.nombre_completo}')">Asignar Plan</button>` : ''}
                                     <button class="btn btn-sm btn-danger" onclick="eliminarSocio(${socio.id})">Eliminar</button>
                                 </td>
                             </tr>
@@ -229,6 +264,67 @@
             cargarSocios();
         } catch (error) {
             console.error('Error eliminando socio:', error);
+        }
+    }
+
+    // Abrir modal de asignar plan
+    function abrirAsignarPlan(socioId, socioNombre) {
+        document.getElementById('asignarSocioId').value = socioId;
+        document.getElementById('asignarSocioNombre').value = socioNombre;
+
+        // Cargar planes en el select del modal
+        cargarPlanesParaAsignar();
+
+        openModal('modalAsignarPlan');
+    }
+
+    // Cargar planes para el modal de asignar
+    async function cargarPlanesParaAsignar() {
+        try {
+            const data = await apiRequest('/api/planes');
+            const select = document.getElementById('asignarPlanSelect');
+            select.innerHTML = '<option value="">Seleccione un plan...</option>';
+
+            const planes = data.data || [];
+            planes.forEach(plan => {
+                const option = document.createElement('option');
+                option.value = plan.id;
+                option.textContent = `${plan.titulo} - ${formatCurrency(plan.precio)}`;
+                select.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error cargando planes:', error);
+        }
+    }
+
+    // Asignar plan a socio
+    async function asignarPlan(event) {
+        event.preventDefault();
+
+        const socioId = document.getElementById('asignarSocioId').value;
+        const planId = document.getElementById('asignarPlanSelect').value;
+        const reactivar = document.getElementById('reactivarCheck').checked;
+
+        const data = {
+            plan_membresia_id: parseInt(planId)
+        };
+
+        // Si se marca reactivar, también cambiar el estado
+        if (reactivar) {
+            data.estado_membresia = 'activa';
+        }
+
+        try {
+            await apiRequest(`/api/socios/${socioId}`, {
+                method: 'PUT',
+                body: JSON.stringify(data)
+            });
+
+            showAlert('Plan asignado exitosamente', 'success');
+            closeModal('modalAsignarPlan');
+            cargarSocios();
+        } catch (error) {
+            console.error('Error asignando plan:', error);
         }
     }
 

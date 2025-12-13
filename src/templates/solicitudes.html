@@ -42,10 +42,10 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="justificacion">Justificación (mínimo 150 caracteres)</label>
-                <textarea id="justificacion" name="justificacion" rows="5" required minlength="150"
+                <label for="justificacion">Justificación (mínimo 20 caracteres)</label>
+                <textarea id="justificacion" name="justificacion" rows="5" required minlength="20"
                     placeholder="Explique el motivo de la solicitud de baja..."></textarea>
-                <small id="charCount">0/150 caracteres</small>
+                <small id="charCount">0/20 caracteres</small>
             </div>
             <div class="form-actions">
                 <button type="button" class="btn btn-secondary"
@@ -156,7 +156,7 @@
             container.innerHTML = solicitudes.map(sol => `
             <div class="solicitud-card">
                 <div class="solicitud-header">
-                    <span class="solicitud-socio">${sol.socio_nombre || 'Socio #' + sol.socio_id}</span>
+                    <span class="solicitud-socio">${sol.socio?.nombre || sol.socio_nombre || 'Socio #' + sol.socio_id}</span>
                     <span class="badge-${sol.estado}">${sol.estado.charAt(0).toUpperCase() + sol.estado.slice(1)}</span>
                 </div>
                 <div class="solicitud-fecha">Solicitado: ${new Date(sol.fecha_solicitud).toLocaleDateString('es-AR')}</div>
@@ -182,7 +182,7 @@
         if (!confirm('¿Está seguro de aprobar esta solicitud de baja?')) return;
 
         try {
-            await apiRequest(`/api/solicitudes/${id}/aprobar`, { method: 'PUT' });
+            await apiRequest(`/api/solicitudes/${id}/aprobar`, { method: 'PUT', body: JSON.stringify({}) });
             showAlert('Solicitud aprobada correctamente', 'success');
             cargarSolicitudes();
         } catch (error) {
@@ -191,8 +191,13 @@
     }
 
     async function rechazarSolicitud(id) {
-        const motivo = prompt('Ingrese el motivo del rechazo:');
+        const motivo = prompt('Ingrese el motivo del rechazo (mínimo 10 caracteres):');
         if (!motivo) return;
+
+        if (motivo.trim().length < 10) {
+            showAlert('El motivo debe tener al menos 10 caracteres', 'error');
+            return;
+        }
 
         try {
             await apiRequest(`/api/solicitudes/${id}/rechazar`, {
@@ -231,8 +236,8 @@
         const socioId = document.getElementById('socio_id').value;
         const justificacion = document.getElementById('justificacion').value;
 
-        if (justificacion.length < 150) {
-            showAlert('La justificación debe tener al menos 150 caracteres', 'error');
+        if (justificacion.length < 20) {
+            showAlert('La justificación debe tener al menos 20 caracteres', 'error');
             return;
         }
 
@@ -249,7 +254,7 @@
             closeModal('modalNuevaSolicitud');
             document.getElementById('socio_id').value = '';
             document.getElementById('justificacion').value = '';
-            document.getElementById('charCount').textContent = '0/150 caracteres';
+            document.getElementById('charCount').textContent = '0/20 caracteres';
             cargarSolicitudes();
         } catch (error) {
             console.error('Error creando solicitud:', error);
@@ -266,8 +271,8 @@
 
         textarea.addEventListener('input', () => {
             const length = textarea.value.length;
-            charCount.textContent = `${length}/150 caracteres`;
-            charCount.style.color = length >= 150 ? 'var(--secondary-color)' : 'var(--text-muted)';
+            charCount.textContent = `${length}/20 caracteres`;
+            charCount.style.color = length >= 20 ? 'var(--secondary-color)' : 'var(--text-muted)';
         });
     });
 </script>

@@ -154,7 +154,7 @@ class SolicitudBajaService:
                        o no se proporciona comentario
         """
         if not comentario_admin or len(comentario_admin.strip()) < 10:
-            raise ValueError("El comentario del administrador es obligatorio")
+            raise ValueError("El comentario del administrador debe tener al menos 10 caracteres")
         
         solicitud = self.obtener_solicitud(solicitud_id)
         

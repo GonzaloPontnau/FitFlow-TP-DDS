@@ -20,7 +20,7 @@
         </div>
         {% endif %}
     </div>
-    
+
     <div style="margin-bottom: 1rem;">
         <label style="display: inline-block;">
             <input type="checkbox" id="mostrarOcupadas" onchange="cargarClases()">
@@ -33,7 +33,7 @@
         </label>
         {% endif %}
     </div>
-    
+
     <div id="clases-list">
         <div class="loading">
             <div class="spinner"></div>
@@ -45,7 +45,7 @@
 {% if session.get('admin_logged_in') %}
 <!-- Modal Nueva Clase -->
 <div id="modalNuevaClase" class="modal">
-    <div class="modal-content">
+    <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
         <div class="modal-header">
             <h3>Nueva Clase</h3>
             <button class="modal-close" onclick="closeModal('modalNuevaClase')">&times;</button>
@@ -76,6 +76,12 @@
                 </select>
             </div>
             <div class="form-group">
+                <label>Planes de Membresía *</label>
+                <select name="planes_ids" id="planesSelect" multiple required style="min-height: 100px;">
+                </select>
+                <small style="color: var(--text-muted);">Mantén Ctrl para seleccionar múltiples planes</small>
+            </div>
+            <div class="form-group">
                 <label>
                     <input type="checkbox" name="tiene_lista_espera">
                     Habilitar lista de espera
@@ -88,7 +94,7 @@
 
 <!-- Modal Editar Clase -->
 <div id="modalEditarClase" class="modal">
-    <div class="modal-content">
+    <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
         <div class="modal-header">
             <h3>Editar Clase</h3>
             <button class="modal-close" onclick="closeModal('modalEditarClase')">&times;</button>
@@ -118,6 +124,12 @@
                 <select name="horario_id" id="editHorarioSelect" required>
                     <option value="">Seleccione un horario...</option>
                 </select>
+            </div>
+            <div class="form-group">
+                <label>Planes de Membresía *</label>
+                <select name="planes_ids" id="editPlanesSelect" multiple required style="min-height: 100px;">
+                </select>
+                <small style="color: var(--text-muted);">Mantén Ctrl para seleccionar múltiples planes</small>
             </div>
             <div class="form-group">
                 <label>
@@ -197,100 +209,123 @@
 
 {% block scripts %}
 <script>
-// Variables globales para datos
-let entrenadores = [];
-let horarios = [];
-const isAdmin = {{ 'true' if session.get('admin_logged_in') else 'false' }};
+    // Variables globales para datos
+    let entrenadores = [];
+    let horarios = [];
+    let planes = [];
+    const isAdmin = {{ 'true' if session.get('admin_logged_in') else 'false' }};
 
-// Cargar entrenadores
-async function cargarEntrenadores() {
-    try {
-        const data = await apiRequest('/api/clases/entrenadores');
-        entrenadores = data.data || [];
-        
-        const selects = ['entrenadorSelect', 'editEntrenadorSelect'];
-        selects.forEach(selectId => {
-            const select = document.getElementById(selectId);
+    // Cargar entrenadores
+    async function cargarEntrenadores() {
+        try {
+            const data = await apiRequest('/api/clases/entrenadores');
+            entrenadores = data.data || [];
+
+            const selects = ['entrenadorSelect', 'editEntrenadorSelect'];
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (select) {
+                    const currentValue = select.value;
+                    select.innerHTML = '<option value="">Seleccione un entrenador...</option>';
+                    entrenadores.forEach(e => {
+                        const option = document.createElement('option');
+                        option.value = e.id;
+                        option.textContent = `${e.nombre} - ${e.especialidad || 'Sin especialidad'}`;
+                        select.appendChild(option);
+                    });
+                    if (currentValue) select.value = currentValue;
+                }
+            });
+        } catch (error) {
+            console.error('Error cargando entrenadores:', error);
+        }
+    }
+
+    // Cargar horarios
+    async function cargarHorarios() {
+        try {
+            const data = await apiRequest('/api/clases/horarios');
+            horarios = data.data || [];
+
+            const selects = ['horarioSelect', 'editHorarioSelect'];
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (select) {
+                    const currentValue = select.value;
+                    select.innerHTML = '<option value="">Seleccione un horario...</option>';
+                    horarios.forEach(h => {
+                        const option = document.createElement('option');
+                        option.value = h.id;
+                        option.textContent = `${capitalize(h.dia)} ${h.hora_inicio} - ${h.hora_fin} (${h.duracion} min)`;
+                        select.appendChild(option);
+                    });
+                    if (currentValue) select.value = currentValue;
+                }
+            });
+        } catch (error) {
+            console.error('Error cargando horarios:', error);
+        }
+    }
+
+    // Cargar planes de membresía
+    async function cargarPlanes() {
+        try {
+            const data = await apiRequest('/api/planes');
+            planes = data.data || [];
+
+            const select = document.getElementById('planesSelect');
             if (select) {
-                const currentValue = select.value;
-                select.innerHTML = '<option value="">Seleccione un entrenador...</option>';
-                entrenadores.forEach(e => {
+                select.innerHTML = '';
+                planes.forEach(p => {
                     const option = document.createElement('option');
-                    option.value = e.id;
-                    option.textContent = `${e.nombre} - ${e.especialidad || 'Sin especialidad'}`;
+                    option.value = p.id;
+                    option.textContent = `${p.titulo} - $${p.precio}`;
+                    option.selected = true; // Seleccionar todos por defecto
                     select.appendChild(option);
                 });
-                if (currentValue) select.value = currentValue;
             }
-        });
-    } catch (error) {
-        console.error('Error cargando entrenadores:', error);
+        } catch (error) {
+            console.error('Error cargando planes:', error);
+        }
     }
-}
 
-// Cargar horarios
-async function cargarHorarios() {
-    try {
-        const data = await apiRequest('/api/clases/horarios');
-        horarios = data.data || [];
-        
-        const selects = ['horarioSelect', 'editHorarioSelect'];
-        selects.forEach(selectId => {
-            const select = document.getElementById(selectId);
-            if (select) {
-                const currentValue = select.value;
-                select.innerHTML = '<option value="">Seleccione un horario...</option>';
-                horarios.forEach(h => {
-                    const option = document.createElement('option');
-                    option.value = h.id;
-                    option.textContent = `${capitalize(h.dia)} ${h.hora_inicio} - ${h.hora_fin} (${h.duracion} min)`;
-                    select.appendChild(option);
-                });
-                if (currentValue) select.value = currentValue;
+    function capitalize(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    // Cargar lista de clases
+    async function cargarClases() {
+        try {
+            const mostrarOcupadas = document.getElementById('mostrarOcupadas').checked;
+            const mostrarInactivasEl = document.getElementById('mostrarInactivas');
+            const mostrarInactivas = mostrarInactivasEl ? mostrarInactivasEl.checked : false;
+
+            // Construir URL con parametros
+            const params = new URLSearchParams();
+            if (!mostrarOcupadas) {
+                params.append('con_cupo', 'true');
             }
-        });
-    } catch (error) {
-        console.error('Error cargando horarios:', error);
-    }
-}
+            if (mostrarInactivas) {
+                params.append('incluir_inactivas', 'true');
+            }
 
-function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-}
+            let url = '/api/clases';
+            if (params.toString()) {
+                url += '?' + params.toString();
+            }
 
-// Cargar lista de clases
-async function cargarClases() {
-    try {
-        const mostrarOcupadas = document.getElementById('mostrarOcupadas').checked;
-        const mostrarInactivasEl = document.getElementById('mostrarInactivas');
-        const mostrarInactivas = mostrarInactivasEl ? mostrarInactivasEl.checked : false;
-        
-        // Construir URL con parametros
-        const params = new URLSearchParams();
-        if (!mostrarOcupadas) {
-            params.append('con_cupo', 'true');
-        }
-        if (mostrarInactivas) {
-            params.append('incluir_inactivas', 'true');
-        }
-        
-        let url = '/api/clases';
-        if (params.toString()) {
-            url += '?' + params.toString();
-        }
-        
-        const data = await apiRequest(url);
-        const container = document.getElementById('clases-list');
-        const clases = data.data || [];
-        
-        if (clases.length === 0) {
-            container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 2rem;">No hay clases disponibles</p>';
-            return;
-        }
-        
-        // Vista diferente para admin vs visitante
-        if (isAdmin) {
-            container.innerHTML = `
+            const data = await apiRequest(url);
+            const container = document.getElementById('clases-list');
+            const clases = data.data || [];
+
+            if (clases.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 2rem;">No hay clases disponibles</p>';
+                return;
+            }
+
+            // Vista diferente para admin vs visitante
+            if (isAdmin) {
+                container.innerHTML = `
                 <div class="table-container">
                     <table>
                         <thead>
@@ -306,11 +341,11 @@ async function cargarClases() {
                         </thead>
                         <tbody>
                             ${clases.map(clase => {
-                                const cupoDisponible = clase.cupos_disponibles || 0;
-                                const cupoTotal = clase.cupo_maximo || 0;
-                                const cupoOcupado = cupoTotal - cupoDisponible;
-                                
-                                return `
+                    const cupoDisponible = clase.cupos_disponibles || 0;
+                    const cupoTotal = clase.cupo_maximo || 0;
+                    const cupoOcupado = cupoTotal - cupoDisponible;
+
+                    return `
                                     <tr>
                                         <td>${clase.id}</td>
                                         <td>
@@ -322,14 +357,14 @@ async function cargarClases() {
                                         <td>
                                             ${cupoOcupado} / ${cupoTotal}
                                             <br>
-                                            ${clase.tiene_cupo 
-                                                ? `<span class="badge badge-success">${cupoDisponible} libres</span>`
-                                                : '<span class="badge badge-danger">Lleno</span>'}
+                                            ${clase.tiene_cupo
+                            ? `<span class="badge badge-success">${cupoDisponible} libres</span>`
+                            : '<span class="badge badge-danger">Lleno</span>'}
                                         </td>
                                         <td>
-                                            ${clase.activa !== false 
-                                                ? '<span class="badge badge-success">Activa</span>'
-                                                : '<span class="badge badge-danger">Inactiva</span>'}
+                                            ${clase.activa !== false
+                            ? '<span class="badge badge-success">Activa</span>'
+                            : '<span class="badge badge-danger">Inactiva</span>'}
                                         </td>
                                         <td>
                                             <button class="btn btn-sm btn-secondary" onclick="editarClase(${clase.id})">Editar</button>
@@ -337,22 +372,22 @@ async function cargarClases() {
                                         </td>
                                     </tr>
                                 `;
-                            }).join('')}
+                }).join('')}
                         </tbody>
                     </table>
                 </div>
             `;
-        } else {
-            // Vista para visitantes - solo visualizacion en cards
-            container.innerHTML = `
+            } else {
+                // Vista para visitantes - solo visualizacion en cards
+                container.innerHTML = `
                 <div class="grid">
                     ${clases.map(clase => {
-                        const cupoDisponible = clase.cupos_disponibles || 0;
-                        const cupoTotal = clase.cupo_maximo || 0;
-                        const cupoOcupado = cupoTotal - cupoDisponible;
-                        const porcentaje = cupoTotal > 0 ? ((cupoOcupado / cupoTotal) * 100).toFixed(0) : 0;
-                        
-                        return `
+                    const cupoDisponible = clase.cupos_disponibles || 0;
+                    const cupoTotal = clase.cupo_maximo || 0;
+                    const cupoOcupado = cupoTotal - cupoDisponible;
+                    const porcentaje = cupoTotal > 0 ? ((cupoOcupado / cupoTotal) * 100).toFixed(0) : 0;
+
+                    return `
                             <div class="grid-item">
                                 <h3 style="margin-bottom: 0.5rem; color: var(--primary-color);">
                                     ${clase.titulo}
@@ -387,192 +422,225 @@ async function cargarClases() {
                                     </div>
                                 </div>
                                 
-                                ${cupoDisponible > 0 
-                                    ? `<span class="badge badge-success">${cupoDisponible} lugares disponibles</span>`
-                                    : `<span class="badge badge-danger">Sin cupo</span>`
-                                }
+                                ${cupoDisponible > 0
+                            ? `<span class="badge badge-success">${cupoDisponible} lugares disponibles</span>`
+                            : `<span class="badge badge-danger">Sin cupo</span>`
+                        }
                             </div>
                         `;
-                    }).join('')}
+                }).join('')}
                 </div>
             `;
+            }
+        } catch (error) {
+            const container = document.getElementById('clases-list');
+            container.innerHTML = '<div class="alert alert-error">Error al cargar clases</div>';
         }
-    } catch (error) {
-        const container = document.getElementById('clases-list');
-        container.innerHTML = '<div class="alert alert-error">Error al cargar clases</div>';
     }
-}
 
-// Crear nueva clase
-async function crearClase(event) {
-    event.preventDefault();
-    
-    const form = event.target;
-    const formData = new FormData(form);
-    
-    const clase = {
-        titulo: formData.get('titulo'),
-        descripcion: formData.get('descripcion'),
-        cupo_maximo: parseInt(formData.get('cupo_maximo')),
-        entrenador_id: parseInt(formData.get('entrenador_id')),
-        horario_id: parseInt(formData.get('horario_id')),
-        tiene_lista_espera: formData.get('tiene_lista_espera') === 'on'
-    };
-    
-    try {
-        await apiRequest('/api/clases', {
-            method: 'POST',
-            body: JSON.stringify(clase)
-        });
-        
-        showAlert('Clase creada exitosamente', 'success');
-        closeModal('modalNuevaClase');
-        form.reset();
-        cargarClases();
-    } catch (error) {
-        console.error('Error creando clase:', error);
-    }
-}
+    // Crear nueva clase
+    async function crearClase(event) {
+        event.preventDefault();
 
-// Editar clase - abrir modal
-async function editarClase(id) {
-    try {
-        const data = await apiRequest(`/api/clases/${id}`);
-        const clase = data.data;
-        
-        document.getElementById('editClaseId').value = clase.id;
-        document.getElementById('editTitulo').value = clase.titulo;
-        document.getElementById('editDescripcion').value = clase.descripcion;
-        document.getElementById('editCupoMaximo').value = clase.cupos.maximo;
-        document.getElementById('editActiva').checked = clase.activa;
-        
-        // Cargar selects y establecer valores
-        await Promise.all([cargarEntrenadores(), cargarHorarios()]);
-        
-        document.getElementById('editEntrenadorSelect').value = clase.entrenador.id;
-        
-        // Buscar horario por dia y hora
-        const horarioMatch = horarios.find(h => 
-            h.dia === clase.horario.dia && 
-            h.hora_inicio === clase.horario.hora_inicio
-        );
-        if (horarioMatch) {
-            document.getElementById('editHorarioSelect').value = horarioMatch.id;
+        const form = event.target;
+        const formData = new FormData(form);
+
+        // Obtener planes seleccionados
+        const planesSelect = document.getElementById('planesSelect');
+        const planesIds = Array.from(planesSelect.selectedOptions).map(opt => parseInt(opt.value));
+
+        const clase = {
+            titulo: formData.get('titulo'),
+            descripcion: formData.get('descripcion'),
+            cupo_maximo: parseInt(formData.get('cupo_maximo')),
+            entrenador_id: parseInt(formData.get('entrenador_id')),
+            horario_id: parseInt(formData.get('horario_id')),
+            tiene_lista_espera: formData.get('tiene_lista_espera') === 'on',
+            planes_ids: planesIds
+        };
+
+        try {
+            await apiRequest('/api/clases', {
+                method: 'POST',
+                body: JSON.stringify(clase)
+            });
+
+            showAlert('Clase creada exitosamente', 'success');
+            closeModal('modalNuevaClase');
+            form.reset();
+            cargarClases();
+        } catch (error) {
+            console.error('Error creando clase:', error);
         }
-        
-        openModal('modalEditarClase');
-    } catch (error) {
-        console.error('Error obteniendo clase:', error);
-        showAlert('Error al cargar datos de la clase', 'error');
     }
-}
 
-// Actualizar clase
-async function actualizarClase(event) {
-    event.preventDefault();
-    
-    const form = event.target;
-    const formData = new FormData(form);
-    const id = formData.get('id');
-    
-    const clase = {
-        titulo: formData.get('titulo'),
-        descripcion: formData.get('descripcion'),
-        cupo_maximo: parseInt(formData.get('cupo_maximo')),
-        entrenador_id: parseInt(formData.get('entrenador_id')),
-        horario_id: parseInt(formData.get('horario_id')),
-        activa: formData.get('activa') === 'on'
-    };
-    
-    try {
-        await apiRequest(`/api/clases/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify(clase)
-        });
-        
-        showAlert('Clase actualizada exitosamente', 'success');
-        closeModal('modalEditarClase');
+    // Editar clase - abrir modal
+    async function editarClase(id) {
+        try {
+            const data = await apiRequest(`/api/clases/${id}`);
+            const clase = data.data;
+
+            document.getElementById('editClaseId').value = clase.id;
+            document.getElementById('editTitulo').value = clase.titulo;
+            document.getElementById('editDescripcion').value = clase.descripcion;
+            document.getElementById('editCupoMaximo').value = clase.cupos.maximo;
+            document.getElementById('editActiva').checked = clase.activa;
+
+            // Cargar selects y establecer valores
+            await Promise.all([cargarEntrenadores(), cargarHorarios(), cargarPlanesEdicion(clase.planes_ids || [])]);
+
+            document.getElementById('editEntrenadorSelect').value = clase.entrenador.id;
+
+            // Buscar horario por dia y hora
+            const horarioMatch = horarios.find(h =>
+                h.dia === clase.horario.dia &&
+                h.hora_inicio === clase.horario.hora_inicio
+            );
+            if (horarioMatch) {
+                document.getElementById('editHorarioSelect').value = horarioMatch.id;
+            }
+
+            openModal('modalEditarClase');
+        } catch (error) {
+            console.error('Error obteniendo clase:', error);
+            showAlert('Error al cargar datos de la clase', 'error');
+        }
+    }
+
+    // Cargar planes para el modal de edición
+    async function cargarPlanesEdicion(planesSeleccionados) {
+        try {
+            const data = await apiRequest('/api/planes');
+            const planesData = data.data || [];
+
+            const select = document.getElementById('editPlanesSelect');
+            if (select) {
+                select.innerHTML = '';
+                planesData.forEach(p => {
+                    const option = document.createElement('option');
+                    option.value = p.id;
+                    option.textContent = `${p.titulo} - $${p.precio}`;
+                    option.selected = planesSeleccionados.includes(p.id);
+                    select.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('Error cargando planes para edición:', error);
+        }
+    }
+
+    // Actualizar clase
+    async function actualizarClase(event) {
+        event.preventDefault();
+
+        const form = event.target;
+        const formData = new FormData(form);
+        const id = formData.get('id');
+
+        // Obtener planes seleccionados
+        const editPlanesSelect = document.getElementById('editPlanesSelect');
+        const planesIds = Array.from(editPlanesSelect.selectedOptions).map(opt => parseInt(opt.value));
+
+        const clase = {
+            titulo: formData.get('titulo'),
+            descripcion: formData.get('descripcion'),
+            cupo_maximo: parseInt(formData.get('cupo_maximo')),
+            entrenador_id: parseInt(formData.get('entrenador_id')),
+            horario_id: parseInt(formData.get('horario_id')),
+            activa: formData.get('activa') === 'on',
+            planes_ids: planesIds
+        };
+
+        try {
+            await apiRequest(`/api/clases/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify(clase)
+            });
+
+            showAlert('Clase actualizada exitosamente', 'success');
+            closeModal('modalEditarClase');
+            cargarClases();
+        } catch (error) {
+            console.error('Error actualizando clase:', error);
+        }
+    }
+
+    // Eliminar clase
+    async function eliminarClase(id) {
+        if (!confirm('Esta seguro de eliminar esta clase? Se desactivara y no estara disponible.')) return;
+
+        try {
+            await apiRequest(`/api/clases/${id}`, { method: 'DELETE' });
+            showAlert('Clase eliminada correctamente', 'success');
+            cargarClases();
+        } catch (error) {
+            console.error('Error eliminando clase:', error);
+        }
+    }
+
+    // Crear entrenador
+    async function crearEntrenador(event) {
+        event.preventDefault();
+
+        const form = event.target;
+        const formData = new FormData(form);
+
+        const entrenador = {
+            nombre: formData.get('nombre'),
+            apellido: formData.get('apellido'),
+            email: formData.get('email'),
+            especialidad: formData.get('especialidad') || ''
+        };
+
+        try {
+            await apiRequest('/api/clases/entrenadores', {
+                method: 'POST',
+                body: JSON.stringify(entrenador)
+            });
+
+            showAlert('Entrenador creado exitosamente', 'success');
+            closeModal('modalNuevoEntrenador');
+            form.reset();
+            cargarEntrenadores();
+        } catch (error) {
+            console.error('Error creando entrenador:', error);
+        }
+    }
+
+    // Crear horario
+    async function crearHorario(event) {
+        event.preventDefault();
+
+        const form = event.target;
+        const formData = new FormData(form);
+
+        const horario = {
+            dia: formData.get('dia'),
+            hora_inicio: formData.get('hora_inicio'),
+            hora_fin: formData.get('hora_fin')
+        };
+
+        try {
+            await apiRequest('/api/clases/horarios', {
+                method: 'POST',
+                body: JSON.stringify(horario)
+            });
+
+            showAlert('Horario creado exitosamente', 'success');
+            closeModal('modalNuevoHorario');
+            form.reset();
+            cargarHorarios();
+        } catch (error) {
+            console.error('Error creando horario:', error);
+        }
+    }
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', () => {
         cargarClases();
-    } catch (error) {
-        console.error('Error actualizando clase:', error);
-    }
-}
-
-// Eliminar clase
-async function eliminarClase(id) {
-    if (!confirm('Esta seguro de eliminar esta clase? Se desactivara y no estara disponible.')) return;
-    
-    try {
-        await apiRequest(`/api/clases/${id}`, { method: 'DELETE' });
-        showAlert('Clase eliminada correctamente', 'success');
-        cargarClases();
-    } catch (error) {
-        console.error('Error eliminando clase:', error);
-    }
-}
-
-// Crear entrenador
-async function crearEntrenador(event) {
-    event.preventDefault();
-    
-    const form = event.target;
-    const formData = new FormData(form);
-    
-    const entrenador = {
-        nombre: formData.get('nombre'),
-        apellido: formData.get('apellido'),
-        email: formData.get('email'),
-        especialidad: formData.get('especialidad') || ''
-    };
-    
-    try {
-        await apiRequest('/api/clases/entrenadores', {
-            method: 'POST',
-            body: JSON.stringify(entrenador)
-        });
-        
-        showAlert('Entrenador creado exitosamente', 'success');
-        closeModal('modalNuevoEntrenador');
-        form.reset();
         cargarEntrenadores();
-    } catch (error) {
-        console.error('Error creando entrenador:', error);
-    }
-}
-
-// Crear horario
-async function crearHorario(event) {
-    event.preventDefault();
-    
-    const form = event.target;
-    const formData = new FormData(form);
-    
-    const horario = {
-        dia: formData.get('dia'),
-        hora_inicio: formData.get('hora_inicio'),
-        hora_fin: formData.get('hora_fin')
-    };
-    
-    try {
-        await apiRequest('/api/clases/horarios', {
-            method: 'POST',
-            body: JSON.stringify(horario)
-        });
-        
-        showAlert('Horario creado exitosamente', 'success');
-        closeModal('modalNuevoHorario');
-        form.reset();
         cargarHorarios();
-    } catch (error) {
-        console.error('Error creando horario:', error);
-    }
-}
-
-// Inicializar
-document.addEventListener('DOMContentLoaded', () => {
-    cargarClases();
-    cargarEntrenadores();
-    cargarHorarios();
-});
+        cargarPlanes();
+    });
 </script>
 {% endblock %}

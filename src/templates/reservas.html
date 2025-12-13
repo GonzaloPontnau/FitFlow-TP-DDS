@@ -47,6 +47,10 @@
 
 {% block scripts %}
 <script>
+    // Variables globales para almacenar datos
+    let sociosData = [];
+    let clasesData = [];
+
     // Cargar socios para el select
     async function cargarSociosSelect() {
         try {
@@ -55,13 +59,17 @@
             select.innerHTML = '<option value="">Seleccione un socio...</option>';
 
             // La API devuelve data.data, no data.socios
-            const socios = data.data || [];
-            socios.filter(s => s.estado_membresia === 'activa').forEach(socio => {
+            sociosData = data.data || [];
+            sociosData.filter(s => s.estado_membresia === 'activa').forEach(socio => {
                 const option = document.createElement('option');
                 option.value = socio.id;
-                option.textContent = `${socio.nombre_completo} (${socio.dni})`;
+                option.textContent = `${socio.nombre_completo} (${socio.dni}) - ${socio.plan || 'Sin plan'}`;
+                option.dataset.planId = socio.plan_membresia_id || '';
                 select.appendChild(option);
             });
+
+            // Agregar evento para filtrar clases al seleccionar socio
+            select.addEventListener('change', filtrarClasesPorSocio);
         } catch (error) {
             console.error('Error cargando socios:', error);
         }
@@ -71,22 +79,66 @@
     async function cargarClasesSelect() {
         try {
             const data = await apiRequest('/api/clases');
-            const select = document.getElementById('claseSelect');
-            select.innerHTML = '<option value="">Seleccione una clase...</option>';
 
             // La API devuelve data.data, no data.clases
-            const clases = data.data || [];
-            clases.forEach(clase => {
-                const cupoDisponible = clase.cupos_disponibles || 0;
-                const option = document.createElement('option');
-                option.value = clase.id;
-                option.textContent = `${clase.titulo} - ${clase.dia} ${clase.hora_inicio} (${cupoDisponible} cupos)`;
-                option.disabled = cupoDisponible <= 0;
-                select.appendChild(option);
-            });
+            clasesData = data.data || [];
+
+            // Cargar todas las clases inicialmente (deshabilitadas hasta seleccionar socio)
+            actualizarSelectClases([]);
         } catch (error) {
             console.error('Error cargando clases:', error);
         }
+    }
+
+    // Filtrar clases según el plan del socio seleccionado
+    async function filtrarClasesPorSocio() {
+        const socioSelect = document.getElementById('socioSelect');
+        const selectedOption = socioSelect.options[socioSelect.selectedIndex];
+        const planId = selectedOption.dataset.planId;
+
+        if (!planId) {
+            // Si no hay plan seleccionado, mostrar mensaje
+            actualizarSelectClases([]);
+            return;
+        }
+
+        // Obtener las clases del plan del socio
+        try {
+            const data = await apiRequest(`/api/clases/plan/${planId}`);
+            const clasesDelPlan = data.data || [];
+            actualizarSelectClases(clasesDelPlan);
+        } catch (error) {
+            console.error('Error cargando clases del plan:', error);
+            actualizarSelectClases([]);
+        }
+    }
+
+    // Actualizar el select de clases con las clases filtradas
+    function actualizarSelectClases(clases) {
+        const select = document.getElementById('claseSelect');
+        select.innerHTML = '<option value="">Seleccione una clase...</option>';
+
+        if (clases.length === 0) {
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = 'Seleccione un socio primero para ver clases disponibles';
+            option.disabled = true;
+            select.appendChild(option);
+            return;
+        }
+
+        // Combinar con datos de cupo de clasesData
+        clases.forEach(clase => {
+            // Buscar info de cupos en clasesData
+            const claseCompleta = clasesData.find(c => c.id === clase.id) || clase;
+            const cupoDisponible = claseCompleta.cupos_disponibles || 0;
+
+            const option = document.createElement('option');
+            option.value = clase.id;
+            option.textContent = `${clase.titulo} - ${clase.dia || claseCompleta.dia} ${clase.hora_inicio || claseCompleta.hora_inicio} (${cupoDisponible} cupos)`;
+            option.disabled = cupoDisponible <= 0;
+            select.appendChild(option);
+        });
     }
 
     // Cargar lista de reservas
@@ -167,6 +219,8 @@
             closeModal('modalNuevaReserva');
             form.reset();
             cargarReservas();
+            // Limpiar select de clases
+            actualizarSelectClases([]);
         } catch (error) {
             console.error('Error creando reserva:', error);
             showAlert(error.message, 'error');
