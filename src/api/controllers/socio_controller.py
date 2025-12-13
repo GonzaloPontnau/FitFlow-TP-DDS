@@ -11,6 +11,9 @@ logger = get_logger(__name__)
 socio_bp = Blueprint('socios', __name__, url_prefix='/api/socios')
 socio_repository = SocioRepository()
 socio_service = SocioService()
+csv_importer = None # Lazy import to avoid circular dependencies if any, or just init here.
+from src.services.csv_importer_service import CSVImporterService
+csv_importer = CSVImporterService()
 
 
 @socio_bp.route('', methods=['GET'])
@@ -196,3 +199,52 @@ def eliminar_socio(socio_id: int):
         'success': True,
         'message': f'Socio {nombre} eliminado exitosamente'
     }), 200
+
+@socio_bp.route('/importar-csv', methods=['POST'])
+@handle_errors
+def importar_csv():
+    """
+    Importa socios desde un archivo CSV.
+    """
+    if 'archivo' not in request.files:
+        return jsonify({'success': False, 'message': 'No se seleccionó ningún archivo'}), 400
+    
+    archivo = request.files['archivo']
+    
+    if archivo.filename == '':
+        return jsonify({'success': False, 'message': 'Nombre de archivo vacío'}), 400
+        
+    if not archivo.filename.endswith('.csv'):
+        return jsonify({'success': False, 'message': 'El archivo debe ser un CSV'}), 400
+
+    import os
+    import tempfile
+    
+    # Guardar archivo temporalmente
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.csv') as temp_file:
+        archivo.save(temp_file.name)
+        temp_path = temp_file.name
+        
+    try:
+        resultado = csv_importer.importar_socios(temp_path)
+        
+        # Eliminar archivo temporal
+        os.unlink(temp_path)
+        
+        if resultado['errores']:
+            return jsonify({
+                'success': True, # Partial success potentially
+                'message': f"Procesado con advertencias: {len(resultado['errores'])} errores.",
+                'data': resultado
+            }), 200
+        else:
+             return jsonify({
+                'success': True,
+                'message': 'Importación completada exitosamente',
+                'data': resultado
+            }), 200
+            
+    except Exception as e:
+        if os.path.exists(temp_path):
+            os.unlink(temp_path)
+        raise e

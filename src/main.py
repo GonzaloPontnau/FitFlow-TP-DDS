@@ -36,6 +36,12 @@ def create_app():
     # runtime_secret = f"{settings.app.secret_key}_{uuid.uuid4()}"
     app.config['SECRET_KEY'] = settings.app.secret_key
     app.config['SESSION_PERMANENT'] = False  # Sesión expira al cerrar navegador
+    
+    # Configuración de Cookies para Desarrollo (Localhost)
+    app.config['SESSION_COOKIE_SECURE'] = False
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    
     app.config['DEBUG'] = settings.app.debug
     app.config['TESTING'] = settings.app.testing
     app.config['SQLALCHEMY_DATABASE_URI'] = settings.database.url
@@ -125,6 +131,15 @@ def create_app():
         if request.remote_addr in ips_bloqueadas:
             logger.warning(f"Acceso denegado a IP bloqueada: {request.remote_addr}")
             abort(403, description="Acceso denegado: IP bloqueada")
+
+    # Middleware para evitar caché en API
+    @app.after_request
+    def add_header(response):
+        if request.path.startswith('/api/'):
+            response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
+        return response
     
     # Decorador para requerir login de admin
     def admin_required(f):

@@ -10,7 +10,7 @@
             Nueva Reserva
         </button>
     </div>
-    
+
     <div id="reservas-list">
         <div class="loading">
             <div class="spinner"></div>
@@ -47,63 +47,63 @@
 
 {% block scripts %}
 <script>
-// Cargar socios para el select
-async function cargarSociosSelect() {
-    try {
-        const data = await apiRequest('/api/socios');
-        const select = document.getElementById('socioSelect');
-        select.innerHTML = '<option value="">Seleccione un socio...</option>';
-        
-        // La API devuelve data.data, no data.socios
-        const socios = data.data || [];
-        socios.filter(s => s.estado_membresia === 'activa').forEach(socio => {
-            const option = document.createElement('option');
-            option.value = socio.id;
-            option.textContent = `${socio.nombre_completo} (${socio.dni})`;
-            select.appendChild(option);
-        });
-    } catch (error) {
-        console.error('Error cargando socios:', error);
-    }
-}
+    // Cargar socios para el select
+    async function cargarSociosSelect() {
+        try {
+            const data = await apiRequest('/api/socios');
+            const select = document.getElementById('socioSelect');
+            select.innerHTML = '<option value="">Seleccione un socio...</option>';
 
-// Cargar clases para el select
-async function cargarClasesSelect() {
-    try {
-        const data = await apiRequest('/api/clases');
-        const select = document.getElementById('claseSelect');
-        select.innerHTML = '<option value="">Seleccione una clase...</option>';
-        
-        // La API devuelve data.data, no data.clases
-        const clases = data.data || [];
-        clases.forEach(clase => {
-            const cupoDisponible = clase.cupos_disponibles || 0;
-            const option = document.createElement('option');
-            option.value = clase.id;
-            option.textContent = `${clase.titulo} - ${clase.dia} ${clase.hora_inicio} (${cupoDisponible} cupos)`;
-            option.disabled = cupoDisponible <= 0;
-            select.appendChild(option);
-        });
-    } catch (error) {
-        console.error('Error cargando clases:', error);
-    }
-}
-
-// Cargar lista de reservas
-async function cargarReservas() {
-    try {
-        const data = await apiRequest('/api/reservas');
-        const container = document.getElementById('reservas-list');
-        
-        // La API devuelve data.data, no data.reservas
-        const reservas = data.data || [];
-        
-        if (reservas.length === 0) {
-            container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 2rem;">No hay reservas registradas</p>';
-            return;
+            // La API devuelve data.data, no data.socios
+            const socios = data.data || [];
+            socios.filter(s => s.estado_membresia === 'activa').forEach(socio => {
+                const option = document.createElement('option');
+                option.value = socio.id;
+                option.textContent = `${socio.nombre_completo} (${socio.dni})`;
+                select.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error cargando socios:', error);
         }
-        
-        container.innerHTML = `
+    }
+
+    // Cargar clases para el select
+    async function cargarClasesSelect() {
+        try {
+            const data = await apiRequest('/api/clases');
+            const select = document.getElementById('claseSelect');
+            select.innerHTML = '<option value="">Seleccione una clase...</option>';
+
+            // La API devuelve data.data, no data.clases
+            const clases = data.data || [];
+            clases.forEach(clase => {
+                const cupoDisponible = clase.cupos_disponibles || 0;
+                const option = document.createElement('option');
+                option.value = clase.id;
+                option.textContent = `${clase.titulo} - ${clase.dia} ${clase.hora_inicio} (${cupoDisponible} cupos)`;
+                option.disabled = cupoDisponible <= 0;
+                select.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error cargando clases:', error);
+        }
+    }
+
+    // Cargar lista de reservas
+    async function cargarReservas() {
+        try {
+            const data = await apiRequest('/api/reservas');
+            const container = document.getElementById('reservas-list');
+
+            // La API devuelve data.data, no data.reservas
+            const reservas = data.data || [];
+
+            if (reservas.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 2rem;">No hay reservas registradas</p>';
+                return;
+            }
+
+            container.innerHTML = `
             <div class="table-container">
                 <table>
                     <thead>
@@ -125,13 +125,13 @@ async function cargarReservas() {
                                 <td>${formatDate(reserva.fecha_reserva)}</td>
                                 <td>
                                     ${!reserva.confirmada
-                                        ? '<span class="badge badge-danger">Cancelada</span>' 
-                                        : '<span class="badge badge-success">Activa</span>'}
+                    ? '<span class="badge badge-danger">Cancelada</span>'
+                    : '<span class="badge badge-success">Activa</span>'}
                                 </td>
                                 <td>
                                     ${reserva.confirmada
-                                        ? `<button class="btn btn-danger btn-sm" onclick="cancelarReserva(${reserva.id})">Cancelar</button>`
-                                        : '-'}
+                    ? `<button class="btn btn-danger btn-sm" onclick="cancelarReserva(${reserva.id})">Cancelar</button>`
+                    : '-'}
                                 </td>
                             </tr>
                         `).join('')}
@@ -139,62 +139,64 @@ async function cargarReservas() {
                 </table>
             </div>
         `;
-    } catch (error) {
-        const container = document.getElementById('reservas-list');
-        container.innerHTML = '<div class="alert alert-error">Error al cargar reservas</div>';
+        } catch (error) {
+            const container = document.getElementById('reservas-list');
+            container.innerHTML = '<div class="alert alert-error">Error al cargar reservas</div>';
+        }
     }
-}
 
-// Crear nueva reserva
-async function crearReserva(event) {
-    event.preventDefault();
-    
-    const form = event.target;
-    const formData = new FormData(form);
-    
-    const reserva = {
-        socio_id: parseInt(formData.get('socio_id')),
-        clase_id: parseInt(formData.get('clase_id'))
-    };
-    
-    try {
-        await apiRequest('/api/reservas', {
-            method: 'POST',
-            body: JSON.stringify(reserva)
-        });
-        
-        showAlert('Reserva creada exitosamente', 'success');
-        closeModal('modalNuevaReserva');
-        form.reset();
+    // Crear nueva reserva
+    async function crearReserva(event) {
+        event.preventDefault();
+
+        const form = event.target;
+        const formData = new FormData(form);
+
+        const reserva = {
+            socio_id: parseInt(formData.get('socio_id')),
+            clase_id: parseInt(formData.get('clase_id'))
+        };
+
+        try {
+            await apiRequest('/api/reservas', {
+                method: 'POST',
+                body: JSON.stringify(reserva)
+            });
+
+            showAlert('Reserva creada exitosamente', 'success');
+            closeModal('modalNuevaReserva');
+            form.reset();
+            cargarReservas();
+        } catch (error) {
+            console.error('Error creando reserva:', error);
+            showAlert(error.message, 'error');
+        }
+    }
+
+    // Cancelar reserva
+    async function cancelarReserva(reservaId) {
+        if (!confirm('¿Está seguro de cancelar esta reserva?')) {
+            return;
+        }
+
+        try {
+            await apiRequest(`/api/reservas/${reservaId}`, {
+                method: 'DELETE'
+            });
+
+            showAlert('Reserva cancelada exitosamente', 'success');
+            cargarReservas();
+        } catch (error) {
+            console.error('Error cancelando reserva:', error);
+            showAlert(error.message, 'error');
+        }
+    }
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', () => {
         cargarReservas();
-    } catch (error) {
-        console.error('Error creando reserva:', error);
-    }
-}
-
-// Cancelar reserva
-async function cancelarReserva(reservaId) {
-    if (!confirm('¿Está seguro de cancelar esta reserva?')) {
-        return;
-    }
-    
-    try {
-        await apiRequest(`/api/reservas/${reservaId}`, {
-            method: 'DELETE'
-        });
-        
-        showAlert('Reserva cancelada exitosamente', 'success');
-        cargarReservas();
-    } catch (error) {
-        console.error('Error cancelando reserva:', error);
-    }
-}
-
-// Inicializar
-document.addEventListener('DOMContentLoaded', () => {
-    cargarReservas();
-    cargarSociosSelect();
-    cargarClasesSelect();
-});
+        cargarSociosSelect();
+        cargarClasesSelect();
+    });
 </script>
 {% endblock %}

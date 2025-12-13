@@ -204,7 +204,9 @@
             const data = await response.json();
 
             if (response.ok) {
-                showAlert(`Importación exitosa: ${data.importados || 0} socios importados`, 'success');
+                const stats = data.data || {};
+                const totalImportados = (stats.creados || 0) + (stats.actualizados || 0);
+                showAlert(`Importación exitosa: ${totalImportados} socios procesados (${stats.creados || 0} nuevos, ${stats.actualizados || 0} actualizados)`, 'success');
                 closeModal('modalImportCSV');
                 form.reset();
                 cargarSocios();

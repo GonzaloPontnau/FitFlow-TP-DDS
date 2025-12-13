@@ -83,10 +83,14 @@ class SolicitudBajaService:
         )
         
         # Actualizar estado del socio
+        print(f">>> DEBUG SERVICE: Updating socio {socio.id} status to BAJA_SOLICITADA")
         socio.solicitar_baja()
         self.socio_repo.update(socio)
         
-        return self.solicitud_repo.create(nueva_solicitud)
+        print(f">>> DEBUG SERVICE: Creating SolicitudBaja for socio {socio.id}")
+        creada = self.solicitud_repo.create(nueva_solicitud)
+        print(f">>> DEBUG SERVICE: Solicitud created with ID {creada.id} and State {creada.estado}")
+        return creada
     
     def listar_solicitudes_pendientes(self) -> List[SolicitudBaja]:
         """Lista todas las solicitudes pendientes de aprobación"""

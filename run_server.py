@@ -16,7 +16,7 @@ if __name__ == '__main__':
         
         print(f"\n{'='*60}")
         print("--- VERSION 2.0 (PUBLICO) ---")
-        print(f"🚀 FitFlow API iniciando en http://{settings.app.host}:{settings.app.port}")
+        print(f"FitFlow API iniciando en http://{settings.app.host}:{settings.app.port}")
         print(f"   Usando servidor Waitress (producción)")
         print(f"{'='*60}\n")
         
