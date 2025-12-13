@@ -265,9 +265,18 @@ async function cargarClases() {
         const mostrarInactivasEl = document.getElementById('mostrarInactivas');
         const mostrarInactivas = mostrarInactivasEl ? mostrarInactivasEl.checked : false;
         
-        let url = '/api/clases';
+        // Construir URL con parametros
+        const params = new URLSearchParams();
         if (!mostrarOcupadas) {
-            url += '?con_cupo=true';
+            params.append('con_cupo', 'true');
+        }
+        if (mostrarInactivas) {
+            params.append('incluir_inactivas', 'true');
+        }
+        
+        let url = '/api/clases';
+        if (params.toString()) {
+            url += '?' + params.toString();
         }
         
         const data = await apiRequest(url);

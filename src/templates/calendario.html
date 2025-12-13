@@ -34,7 +34,12 @@
             const response = await apiRequest(`/api/calendario?modo=${modo}`);
             const container = document.getElementById('calendario-content');
 
-            const eventos = response.data || [];
+            let eventos = response.data || [];
+            
+            // Filtrar clases externas si el checkbox no esta marcado
+            if (!incluirExternas) {
+                eventos = eventos.filter(e => e.tipo !== 'externa');
+            }
 
             if (eventos.length === 0) {
                 container.innerHTML = `
@@ -131,10 +136,10 @@
                                                </div>`
                             : ''
                         }
-                                        ${esExterna && evento.url_inscripcion
-                            ? `<a href="${evento.url_inscripcion}" target="_blank" class="btn btn-sm btn-primary" style="margin-top: 0.5rem;">
-                                                Inscribirse
-                                               </a>`
+                                        ${esExterna
+                            ? `<button class="btn btn-sm btn-secondary" style="margin-top: 0.5rem;" onclick="alert('Las clases externas son de proveedores externos. Esta es una simulacion para el TP.')">
+                                                Info Inscripcion
+                                               </button>`
                             : ''
                         }
                                     </div>

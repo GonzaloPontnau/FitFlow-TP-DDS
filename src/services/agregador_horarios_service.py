@@ -1,6 +1,6 @@
 """Servicio Agregador de Horarios"""
 from typing import List, Dict, Any, Optional
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 from enum import Enum
 from src.services.clase_service import ClaseService
 from src.datasources.proxy.clases_externas_proxy import ClasesExternasProxy
@@ -119,11 +119,39 @@ class AgregadorHorariosService:
             logger.error(f"Error al inicializar proxies: {str(e)}")
             self.clases_externas_proxy = None
     
+    def _obtener_proxima_fecha_dia(self, dia_semana) -> date:
+        """
+        Calcula la próxima fecha para un día de la semana específico.
+        
+        Args:
+            dia_semana: DiaSemana enum (lunes, martes, etc.)
+            
+        Returns:
+            La próxima fecha que corresponde a ese día
+        """
+        # Mapeo de DiaSemana a número de día (0=lunes, 6=domingo)
+        dias_map = {
+            'lunes': 0, 'martes': 1, 'miercoles': 2, 'jueves': 3,
+            'viernes': 4, 'sabado': 5, 'domingo': 6
+        }
+        
+        dia_objetivo = dias_map.get(dia_semana.value, 0)
+        hoy = date.today()
+        dia_actual = hoy.weekday()
+        
+        # Calcular días hasta el próximo día objetivo
+        dias_hasta = (dia_objetivo - dia_actual) % 7
+        
+        # Si es hoy, mostrar hoy
+        if dias_hasta == 0:
+            return hoy
+        
+        return hoy + timedelta(days=dias_hasta)
+    
     def _convertir_clase_interna(self, clase: Clase) -> EventoCalendario:
         """Convierte una clase interna a EventoCalendario"""
-        # Obtener fecha de la clase (para simplificar, usamos fecha actual)
-        # En producción, las clases tendrían fechas específicas
-        fecha = date.today()
+        # Calcular la próxima fecha según el día de la semana de la clase
+        fecha = self._obtener_proxima_fecha_dia(clase.horario.dia_semana)
         
         return EventoCalendario(
             id=f"interna_{clase.id}",

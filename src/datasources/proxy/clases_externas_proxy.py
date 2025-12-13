@@ -170,8 +170,10 @@ class ClasesExternasProxy(BaseProxy):
             for dia in range(dias):
                 fecha = fecha_desde + timedelta(days=dia)
                 
-                # Generar 1-3 talleres por día aleatoriamente
-                num_talleres = random.randint(1, 3)
+                # Generar 0-1 talleres por día (menos clases externas)
+                if random.random() > 0.5:  # 50% de probabilidad de tener taller
+                    continue
+                num_talleres = 1
                 talleres_dia = random.sample(self.TALLERES_SIMULADOS, 
                                             min(num_talleres, len(self.TALLERES_SIMULADOS)))
                 

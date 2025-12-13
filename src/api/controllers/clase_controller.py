@@ -166,17 +166,19 @@ def crear_horario():
 @handle_errors
 def listar_clases():
     """
-    Lista todas las clases activas.
+    Lista todas las clases.
     
     Query params:
         dia: Filtrar por día de la semana (lunes, martes, etc.)
         con_cupo: true/false - solo clases con cupo disponible
+        incluir_inactivas: true/false - incluir clases inactivas (solo admin)
     
     Returns:
         200: Lista de clases
     """
     dia = request.args.get('dia')
     solo_con_cupo = request.args.get('con_cupo', 'false').lower() == 'true'
+    incluir_inactivas = request.args.get('incluir_inactivas', 'false').lower() == 'true'
     
     # Filtrar por día si se especifica
     if dia:
@@ -189,7 +191,12 @@ def listar_clases():
                 'message': f"Día inválido: {dia}. Use: lunes, martes, miercoles, jueves, viernes, sabado, domingo"
             }), 400
     else:
-        clases = clase_service.listar_clases_activas()
+        if incluir_inactivas:
+            # Obtener todas las clases incluyendo inactivas
+            from src.models.clase import Clase
+            clases = Clase.query.all()
+        else:
+            clases = clase_service.listar_clases_activas()
     
     # Filtrar por cupo si se solicita
     if solo_con_cupo:
@@ -211,7 +218,8 @@ def listar_clases():
                 'duracion': c.horario.duracion_minutos(),
                 'cupo_maximo': c.cupo_maximo,
                 'cupos_disponibles': c.cupos_disponibles(),
-                'tiene_cupo': c.tiene_cupo_disponible()
+                'tiene_cupo': c.tiene_cupo_disponible(),
+                'activa': c.activa
             }
             for c in clases
         ]
