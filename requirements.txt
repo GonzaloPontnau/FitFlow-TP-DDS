@@ -10,7 +10,7 @@ APScheduler>=3.10.4
 pandas>=2.2.0
 
 # Database (PostgreSQL - solo para producción)
-# psycopg2-binary>=2.9.9  # Descomentar si usas PostgreSQL
+psycopg2-binary>=2.9.9  # Descomentar si usas PostgreSQL
 
 # Testing
 pytest>=8.0.0

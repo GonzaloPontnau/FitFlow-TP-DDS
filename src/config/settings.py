@@ -83,8 +83,13 @@ class Settings:
         # Convertir a formato de URL válido para SQLite (barras forward en Windows)
         default_db_url = f'sqlite:///{db_path.replace(os.sep, "/")}'
         
+        database_url = os.getenv('DATABASE_URL', default_db_url)
+        # Fix para Render/Heroku que usan postgres:// en lugar de postgresql://
+        if database_url and database_url.startswith('postgres://'):
+            database_url = database_url.replace('postgres://', 'postgresql://', 1)
+
         self.database = DatabaseConfig(
-            url=os.getenv('DATABASE_URL', default_db_url),
+            url=database_url,
             echo=os.getenv('DB_ECHO', 'False').lower() == 'true',
             pool_size=int(os.getenv('DB_POOL_SIZE', 5)),
             max_overflow=int(os.getenv('DB_MAX_OVERFLOW', 10))
