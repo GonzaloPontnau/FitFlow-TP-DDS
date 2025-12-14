@@ -7,22 +7,23 @@ async function apiRequest(url, options = {}) {
         const response = await fetch(API_BASE_URL + url, {
             headers: {
                 'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache',
                 ...options.headers
             },
             ...options
         });
-        
+
         // Verificar el tipo de contenido de la respuesta
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
             throw new Error(`El servidor no devolvió JSON para ${url}. Verifique que la ruta de la API sea correcta.`);
         }
-        
+
         if (!response.ok) {
             const error = await response.json();
             throw new Error(error.error?.message || 'Error en la petición');
         }
-        
+
         return await response.json();
     } catch (error) {
         console.error('Error en API:', error);
@@ -36,10 +37,10 @@ function showAlert(message, type = 'info') {
     const alertDiv = document.createElement('div');
     alertDiv.className = `alert alert-${type}`;
     alertDiv.textContent = message;
-    
+
     const container = document.querySelector('.container');
     container.insertBefore(alertDiv, container.firstChild);
-    
+
     setTimeout(() => alertDiv.remove(), 5000);
 }
 

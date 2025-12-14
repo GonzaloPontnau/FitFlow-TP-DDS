@@ -22,6 +22,8 @@ def listar_planes():
     Returns:
         200: Lista de planes
     """
+    # Forzar que SQLAlchemy lea datos frescos de la BD
+    db.session.expire_all()
     planes = plan_service.listar_planes_activos()
     
     return jsonify({
@@ -76,7 +78,7 @@ def obtener_plan(plan_id: int):
                     'titulo': clase.titulo,
                     'entrenador': clase.entrenador.nombre_completo,
                     'dia': clase.horario.dia_semana.value,
-                    'hora_inicio': clase.horario.hora_inicio
+                    'hora_inicio': clase.horario.hora_inicio.strftime('%H:%M') if clase.horario.hora_inicio else None
                 }
                 for clase in plan.clases
             ]
