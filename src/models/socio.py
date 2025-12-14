@@ -89,10 +89,14 @@ class Socio(db.Model):
                 self.estado_membresia == EstadoMembresia.ACTIVA)
     
     def puede_acceder_clase(self, clase: "Clase") -> bool:
-        """Verifica si el socio puede acceder a una clase específica"""
+        """
+        Verifica si el socio puede acceder a una clase específica.
+        Considera la jerarquía de planes: un plan superior puede acceder
+        a clases de planes inferiores.
+        """
         if not self.tiene_plan_activo():
             return False
-        return clase.esta_incluida_en_plan(self.plan_membresia)
+        return clase.es_accesible_por_plan(self.plan_membresia)
     
     def asignar_plan(self, plan: "PlanMembresia") -> None:
         """Asigna un plan de membresía al socio"""

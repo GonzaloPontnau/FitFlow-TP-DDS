@@ -6,7 +6,7 @@ FitFlow es un sistema open-source diseñado para la gestión integral de operaci
 
 ## 🎬 Video Demo
 
-![Tour de navegación por FitFlow](docs/screenshots/fitflow_home_tour_1765641336768.webp)
+![Tour de navegación por FitFlow](./screenshots/fitflow_action_tour.webp)
 
 ---
 
@@ -92,15 +92,15 @@ FitFlow es un sistema open-source diseñado para la gestión integral de operaci
 
 ## 🏠 1. Página de Inicio
 
-![Página de inicio de FitFlow](docs/screenshots/fitflow_home_1765641365591.png)
+![Página de inicio de FitFlow](./screenshots/fitflow_home_1765641365591.png)
 
 Navegación central a todas las secciones del sistema.
 
 ---
 
-## � 2. Gestión de Socios
+## 👥 2. Gestión de Socios
 
-![Página de gestión de socios](docs/screenshots/fitflow_socios_1765641390831.png)
+![Página de gestión de socios](./screenshots/fitflow_socios_1765641390831.png)
 
 | Funcionalidad | Concepto del TP |
 |---------------|-----------------|
@@ -113,7 +113,7 @@ Navegación central a todas las secciones del sistema.
 
 ## 🧘 3. Gestión de Clases
 
-![Página de gestión de clases](docs/screenshots/fitflow_clases_1765641412495.png)
+![Página de gestión de clases](./screenshots/fitflow_clases_1765641412495.png)
 
 | Funcionalidad | Concepto del TP |
 |---------------|-----------------|
@@ -126,7 +126,7 @@ Navegación central a todas las secciones del sistema.
 
 ## 💎 4. Planes de Membresía
 
-![Página de planes de membresía](docs/screenshots/fitflow_planes_1765641437033.png)
+![Página de planes de membresía](./screenshots/fitflow_planes_1765641437033.png)
 
 Los planes representan tipos de abonos (ej: "Plan Musculación", "Plan Full Clases"). Tienen título, descripción y precio. Un socio solo puede ver las clases incluidas en su plan.
 
@@ -134,7 +134,7 @@ Los planes representan tipos de abonos (ej: "Plan Musculación", "Plan Full Clas
 
 ## 📅 5. Sistema de Reservas
 
-![Página de reservas](docs/screenshots/fitflow_reservas_1765641482223.png)
+![Página de reservas](./screenshots/fitflow_reservas_1765641482223.png)
 
 | Funcionalidad | Concepto del TP |
 |---------------|-----------------|
@@ -153,7 +153,7 @@ Clase llena → Socio en espera → Se libera cupo → Tarea nocturna notifica
 
 ## 📊 6. Dashboard de Estadísticas
 
-![Página de estadísticas](docs/screenshots/fitflow_estadisticas_1765641499490.png)
+![Página de estadísticas](./screenshots/fitflow_estadisticas_1765641499490.png)
 
 | Métrica | Consulta |
 |---------|----------|
@@ -166,7 +166,7 @@ Clase llena → Socio en espera → Se libera cupo → Tarea nocturna notifica
 
 ## 📝 7. Solicitudes de Baja
 
-![Página de solicitudes de baja](docs/screenshots/fitflow_solicitudes_1765641521491.png)
+![Página de solicitudes de baja](./screenshots/fitflow_solicitudes_1765641521491.png)
 
 | Funcionalidad | Concepto del TP |
 |---------------|-----------------|
@@ -184,7 +184,7 @@ interface ValidadorDeSolicitudes:
 
 ## ⚙️ 8. Panel de Administración
 
-![Panel de administración](docs/screenshots/fitflow_admin_1765641548980.png)
+![Panel de administración](./screenshots/fitflow_admin_1765641548980.png)
 
 | Característica | Implementación |
 |----------------|----------------|

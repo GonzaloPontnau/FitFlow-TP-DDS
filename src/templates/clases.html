@@ -323,7 +323,7 @@
                 return;
             }
 
-            // Vista diferente para admin vs visitante
+            // Vista diferente para admin vs visitante/socio
             if (isAdmin) {
                 container.innerHTML = `
                 <div class="table-container">
@@ -378,16 +378,20 @@
                 </div>
             `;
             } else {
-                // Vista para visitantes - solo visualizacion en cards
-                container.innerHTML = `
+                // Vista para socios/visitantes - Cards
+                const currentUserId = {{ current_user.id if current_user and not current_user.is_admin else 'null' }};
+
+
+            container.innerHTML = `
                 <div class="grid">
                     ${clases.map(clase => {
-                    const cupoDisponible = clase.cupos_disponibles || 0;
-                    const cupoTotal = clase.cupo_maximo || 0;
-                    const cupoOcupado = cupoTotal - cupoDisponible;
-                    const porcentaje = cupoTotal > 0 ? ((cupoOcupado / cupoTotal) * 100).toFixed(0) : 0;
+                const cupoDisponible = clase.cupos_disponibles || 0;
+                const cupoTotal = clase.cupo_maximo || 0;
+                const cupoOcupado = cupoTotal - cupoDisponible;
+                const porcentaje = cupoTotal > 0 ? ((cupoOcupado / cupoTotal) * 100).toFixed(0) : 0;
+                const tieneInscripcion = false; // TODO: Check if user already booked
 
-                    return `
+                return `
                             <div class="grid-item">
                                 <h3 style="margin-bottom: 0.5rem; color: var(--primary-color);">
                                     ${clase.titulo}
@@ -413,6 +417,12 @@
                                         <span><strong>Cupo:</strong></span>
                                         <span>${cupoOcupado} / ${cupoTotal}</span>
                                     </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                        <span><strong>Plan requerido:</strong></span>
+                                        <span class="badge ${clase.plan_minimo ? (clase.plan_minimo.nivel === 3 ? 'badge-warning' : clase.plan_minimo.nivel === 2 ? 'badge-info' : 'badge-success') : 'badge-secondary'}">
+                                            ${clase.plan_minimo ? clase.plan_minimo.titulo : 'Sin plan'}
+                                        </span>
+                                    </div>
                                     <div style="margin-top: 0.5rem;">
                                         <div style="background-color: var(--border-color); height: 8px; border-radius: 4px; overflow: hidden;">
                                             <div style="background-color: ${porcentaje >= 90 ? 'var(--danger-color)' : porcentaje >= 70 ? 'var(--warning-color)' : 'var(--secondary-color)'}; 
@@ -422,20 +432,30 @@
                                     </div>
                                 </div>
                                 
-                                ${cupoDisponible > 0
-                            ? `<span class="badge badge-success">${cupoDisponible} lugares disponibles</span>`
-                            : `<span class="badge badge-danger">Sin cupo</span>`
-                        }
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+                                    ${cupoDisponible > 0
+                        ? `<span class="badge badge-success">${cupoDisponible} lugares</span>`
+                        : `<span class="badge badge-danger">Sin cupo</span>`
+                    }
+
+                                    ${currentUserId
+                        ? (cupoDisponible > 0
+                            ? `<button class="btn btn-sm btn-primary" onclick="reservarClase(${clase.id}, ${currentUserId})">Reservar</button>`
+                            : `<button class="btn btn-sm btn-warning" onclick="unirseListaEspera(${clase.id}, ${currentUserId})">Unirse a Espera</button>`
+                        )
+                        : `<span class="text-muted small">Inicia sesión para reservar</span>`
+                    }
+                                </div>
                             </div>
                         `;
-                }).join('')}
+            }).join('')}
                 </div>
             `;
-            }
-        } catch (error) {
-            const container = document.getElementById('clases-list');
-            container.innerHTML = '<div class="alert alert-error">Error al cargar clases</div>';
         }
+        } catch (error) {
+        const container = document.getElementById('clases-list');
+        container.innerHTML = '<div class="alert alert-error">Error al cargar clases</div>';
+    }
     }
 
     // Crear nueva clase
@@ -637,6 +657,45 @@
             cargarHorarios();
         } catch (error) {
             console.error('Error creando horario:', error);
+        }
+    }
+
+    // Funciones para Socios
+    async function reservarClase(claseId, socioId) {
+        if (!confirm('¿Confirmar reserva para esta clase?')) return;
+
+        try {
+            await apiRequest('/api/reservas', {
+                method: 'POST',
+                body: JSON.stringify({
+                    clase_id: claseId,
+                    socio_id: socioId
+                })
+            });
+            showAlert('Reserva realizada con éxito', 'success');
+            cargarClases(); // Recargar para actualizar cupos
+        } catch (error) {
+            console.error('Error reservando:', error);
+            // El apiRequest ya muestra alerta de error si falla
+        }
+    }
+
+    async function unirseListaEspera(claseId, socioId) {
+        if (!confirm('¿La clase está llena. Desea unirse a la lista de espera?')) return;
+
+        try {
+            const response = await apiRequest('/api/reservas/espera', {
+                method: 'POST',
+                body: JSON.stringify({
+                    clase_id: claseId,
+                    socio_id: socioId
+                })
+            });
+
+            // apiRequest devuelve data si es success
+            showAlert(`Unido a lista de espera.`, 'success');
+        } catch (error) {
+            console.error('Error uniendose a lista de espera:', error);
         }
     }
 

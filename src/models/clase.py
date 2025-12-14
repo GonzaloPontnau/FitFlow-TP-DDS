@@ -106,6 +106,34 @@ class Clase(db.Model):
         """Verifica si la clase está incluida en un plan específico"""
         return plan in self.planes
     
+    def plan_minimo_requerido(self) -> "PlanMembresia":
+        """
+        Retorna el plan de nivel mínimo requerido para esta clase.
+        
+        Returns:
+            El plan con el nivel más bajo asociado a esta clase,
+            o None si no tiene planes asociados.
+        """
+        if not self.planes:
+            return None
+        return min(self.planes, key=lambda p: p.nivel)
+    
+    def es_accesible_por_plan(self, plan: "PlanMembresia") -> bool:
+        """
+        Verifica si un plan puede acceder a esta clase considerando la jerarquía.
+        Un plan de nivel superior puede acceder a clases de planes inferiores.
+        
+        Args:
+            plan: Plan del socio
+            
+        Returns:
+            True si el plan puede acceder a la clase
+        """
+        if not self.planes:
+            return False
+        plan_minimo = self.plan_minimo_requerido()
+        return plan.nivel >= plan_minimo.nivel if plan_minimo else False
+    
     def desactivar(self) -> None:
         """Desactiva la clase"""
         self.activa = False

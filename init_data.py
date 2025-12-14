@@ -34,21 +34,25 @@ def init_database():
         print("✓ Datos existentes eliminados")
         
         # Crear planes de membresía
+        # Niveles: 1=Básico, 2=Premium, 3=Elite
         print("\nCreando planes de membresía...")
         plan_basico = PlanMembresia(
             "Plan Básico",
             "Acceso a gimnasio de lunes a viernes de 6:00 a 16:00 y clases grupales básicas",
-            32000.0
+            32000.0,
+            nivel=1  # Nivel más bajo
         )
         plan_premium = PlanMembresia(
             "Plan Premium",
             "Acceso completo al gimnasio, todas las clases grupales, nutricionista y entrenador personal",
-            38000.0
+            38000.0,
+            nivel=2  # Nivel intermedio
         )
         plan_estudiante = PlanMembresia(
             "Plan Elite",
             "Acceso completo a todas las clases, entrenador personal dedicado, spa y área VIP",
-            42000.0
+            42000.0,
+            nivel=3  # Nivel más alto - accede a todo
         )
         
         db.session.add_all([plan_basico, plan_premium, plan_estudiante])
@@ -68,56 +72,58 @@ def init_database():
         print(f"✓ {Entrenador.query.count()} entrenadores creados")
         
         # Crear horarios y clases
+        # Con la jerarquía de planes, solo asignamos el plan MÍNIMO requerido
+        # Elite (nivel 3) accede a todo, Premium (nivel 2) a premium y básicas, Básico (nivel 1) solo a básicas
         print("\nCreando clases y horarios...")
         
-        # Spinning - Lunes 18:00
+        # Spinning - Lunes 18:00 - Clase BÁSICA (todos pueden acceder)
         horario1 = Horario(DiaSemana.LUNES, time(18, 0), time(19, 0))
         clase1 = Clase("Spinning Intenso", "Clase de spinning de alta intensidad para quemar calorías", 20, entrenador1, horario1)
         db.session.add(clase1)
         db.session.flush()
-        clase1.planes = [plan_premium, plan_basico]
+        clase1.planes = [plan_basico]  # Plan mínimo: Básico
         
-        # Yoga - Miércoles 10:00
+        # Yoga - Miércoles 10:00 - Clase BÁSICA
         horario2 = Horario(DiaSemana.MIERCOLES, time(10, 0), time(10, 45))
         clase2 = Clase("Yoga Matutino", "Sesión de yoga relajante para comenzar el día", 15, entrenador2, horario2)
         db.session.add(clase2)
         db.session.flush()
-        clase2.planes = [plan_basico, plan_premium, plan_estudiante]
+        clase2.planes = [plan_basico]  # Plan mínimo: Básico
         
-        # CrossFit - Martes 19:00
+        # CrossFit - Martes 19:00 - Clase PREMIUM (solo Premium y Elite)
         horario3 = Horario(DiaSemana.MARTES, time(19, 0), time(20, 0))
         clase3 = Clase("CrossFit Avanzado", "Entrenamiento funcional de alta intensidad", 12, entrenador3, horario3)
         db.session.add(clase3)
         db.session.flush()
-        clase3.planes = [plan_premium]
+        clase3.planes = [plan_premium]  # Plan mínimo: Premium
         
-        # Zumba - Jueves 18:30
+        # Zumba - Jueves 18:30 - Clase BÁSICA
         horario4 = Horario(DiaSemana.JUEVES, time(18, 30), time(19, 30))
         clase4 = Clase("Zumba Fitness", "Baile y ejercicio cardiovascular al ritmo de música latina", 25, entrenador4, horario4)
         db.session.add(clase4)
         db.session.flush()
-        clase4.planes = [plan_basico, plan_premium, plan_estudiante]
+        clase4.planes = [plan_basico]  # Plan mínimo: Básico
         
-        # Funcional - Viernes 17:00
+        # Funcional - Viernes 17:00 - Clase BÁSICA
         horario5 = Horario(DiaSemana.VIERNES, time(17, 0), time(18, 0))
         clase5 = Clase("Funcional TRX", "Entrenamiento funcional con bandas de suspensión", 15, entrenador5, horario5)
         db.session.add(clase5)
         db.session.flush()
-        clase5.planes = [plan_premium, plan_basico]
+        clase5.planes = [plan_basico]  # Plan mínimo: Básico
         
-        # Pilates - Lunes 9:00
+        # Pilates - Lunes 9:00 - Clase BÁSICA
         horario6 = Horario(DiaSemana.LUNES, time(9, 0), time(10, 0))
         clase6 = Clase("Pilates", "Fortalecimiento del core y mejora de la postura", 18, entrenador2, horario6)
         db.session.add(clase6)
         db.session.flush()
-        clase6.planes = [plan_basico, plan_premium, plan_estudiante]
+        clase6.planes = [plan_basico]  # Plan mínimo: Básico
         
-        # Spinning - Sábado 11:00
+        # Spinning Weekend - Sábado 11:00 - Clase ELITE (solo Elite)
         horario7 = Horario(DiaSemana.SABADO, time(11, 0), time(12, 0))
-        clase7 = Clase("Spinning Weekend", "Clase de spinning para el fin de semana", 20, entrenador1, horario7)
+        clase7 = Clase("Spinning VIP Weekend", "Clase exclusiva de spinning con instructor personalizado", 10, entrenador1, horario7)
         db.session.add(clase7)
         db.session.flush()
-        clase7.planes = [plan_premium, plan_basico]
+        clase7.planes = [plan_estudiante]  # Plan mínimo: Elite
         
         db.session.commit()
         print(f"✓ {Clase.query.count()} clases creadas")

@@ -8,6 +8,26 @@
         <h2 class="card-title">Planes de Membresía</h2>
     </div>
 
+    {% if current_user and not current_user.is_admin and current_user.plan %}
+    <div class="alert alert-success" style="margin: 1rem; display: flex; align-items: center; gap: 1rem;">
+        <span style="font-size: 1.5rem;">✓</span>
+        <div>
+            <strong>Tu plan activo:</strong> {{ current_user.plan.titulo }}
+            <br>
+            <small style="opacity: 0.8;">Puedes acceder a todas las clases de nivel {{ current_user.plan.nivel }} o inferior</small>
+        </div>
+    </div>
+    {% elif current_user and not current_user.is_admin and not current_user.plan %}
+    <div class="alert alert-warning" style="margin: 1rem; display: flex; align-items: center; gap: 1rem;">
+        <span style="font-size: 1.5rem;">⚠</span>
+        <div>
+            <strong>No tienes un plan activo</strong>
+            <br>
+            <small>Contacta con administración para adquirir una membresía</small>
+        </div>
+    </div>
+    {% endif %}
+
     <div id="planes-list">
         <div class="loading">
             <div class="spinner"></div>
@@ -19,6 +39,9 @@
 
 {% block scripts %}
 <script>
+    // Plan actual del usuario (si está logueado)
+    const userPlan = {{ current_user.plan.id if current_user and current_user.plan else 'null' }};
+    
     // Cargar lista de planes
     async function cargarPlanes() {
         try {
@@ -36,8 +59,9 @@
             container.innerHTML = `
             <div class="grid">
                 ${planes.map(plan => `
-                    <div class="grid-item">
+                    <div class="grid-item ${userPlan === plan.id ? 'plan-activo' : ''}" style="${userPlan === plan.id ? 'border: 3px solid var(--secondary-color); box-shadow: 0 0 20px rgba(40, 167, 69, 0.3);' : ''}">
                         <div style="text-align: center;">
+                            ${userPlan === plan.id ? '<div class="badge badge-success" style="margin-bottom: 1rem; font-size: 0.9rem;">✓ TU PLAN ACTUAL</div>' : ''}
                             <h3 style="color: var(--primary-color); margin-bottom: 1rem;">
                                 ${plan.titulo}
                             </h3>
@@ -48,7 +72,9 @@
                                 ${plan.descripcion || 'Sin descripción'}
                             </p>
                             <div style="padding-top: 1rem; border-top: 1px solid var(--border-color);">
-                                <span class="badge badge-info">ID: ${plan.id}</span>
+                                <span class="badge ${plan.nivel === 3 ? 'badge-warning' : plan.nivel === 2 ? 'badge-info' : 'badge-secondary'}">
+                                    Nivel ${plan.nivel || 1}
+                                </span>
                             </div>
                         </div>
                     </div>

@@ -43,18 +43,25 @@
                 <li><a href="/clases">Clases</a></li>
                 <li><a href="/planes">Planes</a></li>
                 <li><a href="/calendario">Calendario</a></li>
-                {% if session.get('admin_logged_in') %}
+
+                {% if current_user and current_user.is_admin %}
                 <li><a href="/socios">Socios</a></li>
                 <li><a href="/reservas">Reservas</a></li>
                 <li><a href="/solicitudes">Solicitudes</a></li>
                 <li><a href="/estadisticas/dashboard">Estadisticas</a></li>
-                {% endif %}
                 <li><a href="/admin">Admin</a></li>
-                {% if session.get('admin_logged_in') %}
                 <li class="nav-user">
-                    <span class="user-badge">{{ session.get('admin_username', 'Admin') }}</span>
+                    <span class="user-badge">{{ current_user.name }}</span>
                     <a href="/logout" class="btn-logout">Cerrar Sesion</a>
                 </li>
+                {% elif current_user %}
+                <li><a href="/solicitar-baja">Mis Datos</a></li>
+                <li class="nav-user">
+                    <span class="user-badge">{{ current_user.name }}</span>
+                    <a href="/logout" class="btn-logout">Cerrar Sesion</a>
+                </li>
+                {% else %}
+                <li><a href="/login" class="btn-login-nav">Iniciar Sesión</a></li>
                 {% endif %}
             </ul>
         </div>

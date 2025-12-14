@@ -1,6 +1,6 @@
-"""Controlador REST para Reservas"""
 from flask import Blueprint, request, jsonify
 from src.services.reserva_service import ReservaService
+from src.services.lista_espera_service import ListaEsperaService
 from src.api.controllers.base_controller import handle_errors, validate_json
 from src.core.logging_config import get_logger
 from src.exceptions.base_exceptions import ValidationException
@@ -9,6 +9,39 @@ logger = get_logger(__name__)
 
 reserva_bp = Blueprint('reservas', __name__, url_prefix='/api/reservas')
 reserva_service = ReservaService()
+lista_espera_service = ListaEsperaService()
+
+
+@reserva_bp.route('/espera', methods=['POST'])
+@handle_errors
+@validate_json('socio_id', 'clase_id')
+def unirse_lista_espera():
+    """
+    Une a un socio a la lista de espera de una clase.
+    """
+    data = request.get_json()
+    socio_id = data['socio_id']
+    clase_id = data['clase_id']
+
+    from src.repositories.base_repository import BaseRepository
+    from src.models.socio import Socio
+    from src.models.clase import Clase
+
+    socio = BaseRepository(Socio).get_by_id(socio_id)
+    clase = BaseRepository(Clase).get_by_id(clase_id)
+
+    if not socio or not clase:
+         return jsonify({'success': False, 'message': 'Socio o Clase no encontrados'}), 404
+
+    try:
+        entrada = lista_espera_service.inscribir_en_lista_espera(socio, clase)
+        return jsonify({
+            'success': True, 
+            'message': f'Inscrito en lista de espera. Posición: {entrada.posicion}',
+            'data': {'posicion': entrada.posicion}
+        }), 201
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
 
 
 @reserva_bp.route('', methods=['GET'])

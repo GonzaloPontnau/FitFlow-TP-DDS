@@ -45,6 +45,7 @@ uploads/
 
 # Logs
 *.log
+logs/
 
 # Testing
 .coverage

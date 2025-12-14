@@ -219,7 +219,12 @@ def listar_clases():
                 'cupo_maximo': c.cupo_maximo,
                 'cupos_disponibles': c.cupos_disponibles(),
                 'tiene_cupo': c.tiene_cupo_disponible(),
-                'activa': c.activa
+                'activa': c.activa,
+                'plan_minimo': {
+                    'id': c.plan_minimo_requerido().id,
+                    'titulo': c.plan_minimo_requerido().titulo,
+                    'nivel': c.plan_minimo_requerido().nivel
+                } if c.plan_minimo_requerido() else None
             }
             for c in clases
         ]

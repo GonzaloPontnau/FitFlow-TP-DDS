@@ -11,6 +11,11 @@ class PlanMembresia(db.Model):
     
     Un plan define el tipo de abono que un socio puede contratar,
     incluyendo qué clases puede acceder y su precio.
+    
+    Jerarquía de planes (nivel):
+        1 = Básico (solo accede a clases básicas)
+        2 = Premium (accede a clases básicas y premium)
+        3 = Elite (accede a todas las clases)
     """
     __tablename__ = 'planes_membresia'
     
@@ -18,6 +23,7 @@ class PlanMembresia(db.Model):
     titulo: Mapped[str] = mapped_column(String(100), nullable=False)
     descripcion: Mapped[str] = mapped_column(Text, nullable=False)
     precio: Mapped[float] = mapped_column(Float, nullable=False)
+    nivel: Mapped[int] = mapped_column(Integer, default=1)  # 1=Básico, 2=Premium, 3=Elite
     activo: Mapped[bool] = mapped_column(default=True)
     
     # Relaciones
@@ -31,7 +37,7 @@ class PlanMembresia(db.Model):
         back_populates="planes"
     )
     
-    def __init__(self, titulo: str, descripcion: str, precio: float):
+    def __init__(self, titulo: str, descripcion: str, precio: float, nivel: int = 1):
         """
         Inicializa un nuevo Plan de Membresía.
         
@@ -39,11 +45,26 @@ class PlanMembresia(db.Model):
             titulo: Nombre del plan
             descripcion: Descripción detallada del plan
             precio: Precio mensual del plan
+            nivel: Nivel jerárquico del plan (1=Básico, 2=Premium, 3=Elite)
         """
         self.titulo = titulo
         self.descripcion = descripcion
         self.precio = precio
+        self.nivel = nivel
         self.activo = True
+    
+    def puede_acceder_a_plan(self, otro_plan: "PlanMembresia") -> bool:
+        """
+        Verifica si este plan puede acceder a las clases de otro plan.
+        Un plan de nivel superior puede acceder a clases de planes inferiores.
+        
+        Args:
+            otro_plan: Plan a verificar
+            
+        Returns:
+            True si puede acceder, False en caso contrario
+        """
+        return self.nivel >= otro_plan.nivel
     
     def agregar_clase(self, clase: "Clase") -> None:
         """Agrega una clase al plan"""

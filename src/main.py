@@ -242,11 +242,66 @@ def create_app():
     
     @app.route('/logout')
     def logout():
-        """Cerrar sesión de administrador"""
-        username = session.get('admin_username', 'Unknown')
+        """Cerrar sesión"""
+        # Limpiar sesión completa
         session.clear()
-        logger.info(f"Admin {username} cerró sesión")
+        logger.info(f"Sesión cerrada")
         return redirect(url_for('index'))
+    
+    # Context Processor para inyectar usuario actual en todos los templates
+    @app.context_processor
+    def inject_user():
+        user = None
+        if session.get('admin_logged_in'):
+            user = {
+                'is_admin': True, 
+                'name': session.get('admin_username', 'Admin'),
+                'plan': None
+            }
+        elif session.get('socio_id'):
+            # Obtener información del plan del socio
+            plan_info = None
+            try:
+                from src.models.socio import Socio
+                socio = Socio.query.get(session.get('socio_id'))
+                if socio and socio.plan_membresia:
+                    plan_info = {
+                        'id': socio.plan_membresia.id,
+                        'titulo': socio.plan_membresia.titulo,
+                        'nivel': socio.plan_membresia.nivel
+                    }
+            except Exception:
+                pass
+            
+            user = {
+                'is_admin': False,
+                'id': session.get('socio_id'),
+                'name': session.get('socio_name', 'Socio'),
+                'plan': plan_info
+            }
+        return dict(current_user=user)
+
+    @app.route('/login-socio', methods=['POST'])
+    def login_socio():
+        """Login para socios mediante DNI o Email"""
+        identifier = request.form.get('identifier')
+        
+        if not identifier:
+             return render_template('login.html', error_socio='Ingrese DNI o Email', active_tab='socio')
+        
+        from src.models.socio import Socio
+        # Buscar por DNI o Email
+        socio = Socio.query.filter((Socio.dni == identifier) | (Socio.email == identifier)).first()
+        
+        if socio:
+            session['socio_logged_in'] = True
+            session['socio_id'] = socio.id
+            session['socio_name'] = socio.nombre + " " + socio.apellido
+            logger.info(f"Socio {socio.id} ({socio.nombre_completo}) inició sesión")
+            return redirect(url_for('clases_page'))
+        else:
+            logger.warning(f"Intento de login socio fallido: {identifier}")
+            return render_template('login.html', error_socio='Socio no encontrado', active_tab='socio')
     
     # API Endpoints informativos
     @app.route('/api')
