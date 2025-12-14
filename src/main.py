@@ -97,13 +97,13 @@ def create_app():
                     clase1.planes = [plan_basico]
 
                     horario2 = Horario(DiaSemana.MIERCOLES, time(10, 0), time(10, 45))
-                    clase2 = Clase("Yoga Matutino", "Sesión de yoga relajante para comenzar el día", 15, entrenador2, horario2, imagen_url="https://images.unsplash.com/photo-1544367563-12123d8965cd?q=80&w=1470&auto=format&fit=crop", video_url="https://www.youtube.com/watch?v=v7AYKMP6rOE")
+                    clase2 = Clase("Yoga Matutino", "Sesión de yoga relajante para comenzar el día", 15, entrenador2, horario2, imagen_url="https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?q=80&w=1469&auto=format&fit=crop", video_url="https://www.youtube.com/watch?v=v7AYKMP6rOE")
                     db.session.add(clase2)
                     db.session.flush()
                     clase2.planes = [plan_basico]
 
                     horario3 = Horario(DiaSemana.MARTES, time(19, 0), time(20, 0))
-                    clase3 = Clase("CrossFit Avanzado", "Entrenamiento funcional de alta intensidad", 12, entrenador3, horario3, imagen_url="https://images.unsplash.com/photo-1517963879466-e9b5ce382569?q=80&w=1470&auto=format&fit=crop")
+                    clase3 = Clase("CrossFit Avanzado", "Entrenamiento funcional de alta intensidad", 12, entrenador3, horario3, imagen_url="https://images.unsplash.com/photo-1534367507873-d2d7e24c797f?q=80&w=1470&auto=format&fit=crop")
                     db.session.add(clase3)
                     db.session.flush()
                     clase3.planes = [plan_premium]
