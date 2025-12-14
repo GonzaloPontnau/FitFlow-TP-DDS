@@ -210,6 +210,8 @@ def listar_clases():
                 'id': c.id,
                 'titulo': c.titulo,
                 'descripcion': c.descripcion,
+                'imagen_url': c.imagen_url,
+                'video_url': c.video_url,
                 'entrenador': c.entrenador.nombre_completo,
                 'dia': c.horario.dia_semana.value,
                 # convertir a string para JSON
@@ -289,6 +291,8 @@ def obtener_clase(clase_id: int):
             'id': clase.id,
             'titulo': clase.titulo,
             'descripcion': clase.descripcion,
+            'imagen_url': clase.imagen_url,
+            'video_url': clase.video_url,
             'activa': clase.activa,
             'entrenador': {
                 'id': clase.entrenador.id,
@@ -359,7 +363,9 @@ def crear_clase():
         descripcion=data['descripcion'],
         cupo_maximo=data['cupo_maximo'],
         entrenador=entrenador,
-        horario=horario
+        horario=horario,
+        imagen_url=data.get('imagen_url'),
+        video_url=data.get('video_url')
     )
     
     # Asociar planes de membresía si se especifican
@@ -427,6 +433,10 @@ def actualizar_clase(clase_id: int):
         clase.titulo = data['titulo']
     if 'descripcion' in data:
         clase.descripcion = data['descripcion']
+    if 'imagen_url' in data:
+        clase.imagen_url = data['imagen_url']
+    if 'video_url' in data:
+        clase.video_url = data['video_url']
     if 'cupo_maximo' in data:
         if data['cupo_maximo'] <= 0:
             return jsonify({

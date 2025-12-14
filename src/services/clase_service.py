@@ -14,7 +14,8 @@ class ClaseService:
         self.clase_repo = ClaseRepository()
     
     def crear_clase(self, titulo: str, descripcion: str, cupo_maximo: int,
-                   entrenador: Entrenador, horario: Horario) -> Clase:
+                   entrenador: Entrenador, horario: Horario,
+                   imagen_url: str = None, video_url: str = None) -> Clase:
         """
         Crea una nueva clase.
         
@@ -24,6 +25,8 @@ class ClaseService:
             cupo_maximo: Cantidad máxima de participantes
             entrenador: Entrenador que dicta la clase
             horario: Horario de la clase
+            imagen_url: URL de la imagen (opcional)
+            video_url: URL del video (opcional)
             
         Returns:
             La clase creada
@@ -42,7 +45,9 @@ class ClaseService:
             descripcion=descripcion,
             cupo_maximo=cupo_maximo,
             entrenador=entrenador,
-            horario=horario
+            horario=horario,
+            imagen_url=imagen_url,
+            video_url=video_url
         )
         
         return self.clase_repo.create(nueva_clase)

@@ -60,6 +60,14 @@
                 <textarea name="descripcion" required rows="3"></textarea>
             </div>
             <div class="form-group">
+                <label>URL Imagen</label>
+                <input type="url" name="imagen_url" placeholder="https://ejemplo.com/imagen.jpg">
+            </div>
+            <div class="form-group">
+                <label>URL Video</label>
+                <input type="url" name="video_url" placeholder="https://ejemplo.com/video.mp4">
+            </div>
+            <div class="form-group">
                 <label>Cupo Maximo *</label>
                 <input type="number" name="cupo_maximo" required min="1" value="20">
             </div>
@@ -108,6 +116,14 @@
             <div class="form-group">
                 <label>Descripcion *</label>
                 <textarea name="descripcion" id="editDescripcion" required rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>URL Imagen</label>
+                <input type="url" name="imagen_url" id="editImagenUrl">
+            </div>
+            <div class="form-group">
+                <label>URL Video</label>
+                <input type="url" name="video_url" id="editVideoUrl">
             </div>
             <div class="form-group">
                 <label>Cupo Maximo *</label>
@@ -367,8 +383,13 @@
                             : '<span class="badge badge-danger">Inactiva</span>'}
                                         </td>
                                         <td>
-                                            <button class="btn btn-sm btn-secondary" onclick="editarClase(${clase.id})">Editar</button>
-                                            <button class="btn btn-sm btn-danger" onclick="eliminarClase(${clase.id})">Eliminar</button>
+                                            <div style="display: flex; gap: 5px; align-items: center;">
+                                                <button class="btn btn-sm btn-secondary" onclick="editarClase(${clase.id})">Editar</button>
+                                                <button class="btn btn-sm btn-info" onclick="window.location.href='/api/clases/${clase.id}/reporte-asistencia'" title="Exportar CSV" style="display: flex; align-items: center; justify-content: center; padding: 0.4rem 0.6rem;">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                                </button>
+                                                <button class="btn btn-sm btn-danger" onclick="eliminarClase(${clase.id})">Eliminar</button>
+                                            </div>
                                         </td>
                                     </tr>
                                 `;
@@ -393,11 +414,15 @@
 
                 return `
                             <div class="grid-item">
+                                ${clase.imagen_url ? `<img src="${clase.imagen_url}" alt="${clase.titulo}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 4px; margin-bottom: 1rem;">` : ''}
                                 <h3 style="margin-bottom: 0.5rem; color: var(--primary-color);">
                                     ${clase.titulo}
                                 </h3>
                                 <p style="color: var(--text-muted); margin-bottom: 1rem;">
                                     ${clase.descripcion || 'Sin descripcion'}
+                                    ${clase.video_url ? `<br><a href="${clase.video_url}" target="_blank" style="color: var(--primary-color); font-size: 0.9em; text-decoration: none; display: inline-flex; align-items: center; margin-top: 0.5rem;">
+                                        <span style="margin-right: 4px;">▶</span> Ver Video Demostrativo
+                                    </a>` : ''}
                                 </p>
                                 
                                 <div style="margin-bottom: 1rem;">
@@ -472,6 +497,8 @@
         const clase = {
             titulo: formData.get('titulo'),
             descripcion: formData.get('descripcion'),
+            imagen_url: formData.get('imagen_url'),
+            video_url: formData.get('video_url'),
             cupo_maximo: parseInt(formData.get('cupo_maximo')),
             entrenador_id: parseInt(formData.get('entrenador_id')),
             horario_id: parseInt(formData.get('horario_id')),
@@ -503,6 +530,8 @@
             document.getElementById('editClaseId').value = clase.id;
             document.getElementById('editTitulo').value = clase.titulo;
             document.getElementById('editDescripcion').value = clase.descripcion;
+            document.getElementById('editImagenUrl').value = clase.imagen_url || '';
+            document.getElementById('editVideoUrl').value = clase.video_url || '';
             document.getElementById('editCupoMaximo').value = clase.cupos.maximo;
             document.getElementById('editActiva').checked = clase.activa;
 
@@ -564,6 +593,8 @@
         const clase = {
             titulo: formData.get('titulo'),
             descripcion: formData.get('descripcion'),
+            imagen_url: formData.get('imagen_url'),
+            video_url: formData.get('video_url'),
             cupo_maximo: parseInt(formData.get('cupo_maximo')),
             entrenador_id: parseInt(formData.get('entrenador_id')),
             horario_id: parseInt(formData.get('horario_id')),
