@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagramas de Diseño de Sistemas - FitFlow</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose',
+        });
+    </script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        h2 { color: #34495e; margin-top: 30px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        h3 { color: #7f8c8d; margin-top: 20px; }
+        .diagram-box {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            background-color: #fff;
+            overflow-x: auto;
+        }
+        .description {
+            margin-bottom: 15px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Diagramas de Diseño de Sistemas - FitFlow</h1>
+        <p>Este documento recopila los diagramas de diseño del sistema FitFlow, correspondientes a la materia Diseño de Sistemas. Se incluyen diagramas de clases, entidad-relación, secuencia y estados.</p>
+
+        <h2>1. Diagrama de Clases (UML)</h2>
+        <p class="description">Este diagrama representa la estructura estática del sistema, mostrando las clases del dominio, sus atributos, métodos principales y las relaciones entre ellas.</p>
+        <div class="diagram-box">
+            <div class="mermaid">
+classDiagram
+    class Socio {
+        +Integer id
+        +String nombre
+        +String apellido
+        +String dni
+        +String email
+        +RolUsuario rol
+        +EstadoMembresia estado_membresia
+        +tiene_plan_activo() bool
+        +puede_acceder_clase(clase) bool
+    }
+
+    class PlanMembresia {
+        +Integer id
+        +String titulo
+        +Float precio
+        +Integer nivel
+        +Boolean activo
+        +puede_acceder_a_plan(otro_plan) bool
+    }
+
+    class Clase {
+        +Integer id
+        +String titulo
+        +String descripcion
+        +Integer cupo_maximo
+        +Boolean activa
+        +Boolean tiene_lista_espera
+        +cupos_disponibles() int
+    }
+
+    class Entrenador {
+        +Integer id
+        +String nombre
+        +String apellido
+        +String email
+        +String especialidad
+    }
+
+    class Horario {
+        +Integer id
+        +DiaSemana dia_semana
+        +Time hora_inicio
+        +Time hora_fin
+        +duracion_minutos() int
+    }
+
+    class Reserva {
+        +Integer id
+        +DateTime fecha_reserva
+        +Boolean confirmada
+        +DateTime fecha_cancelacion
+        +cancelar()
+        +esta_activa() bool
+    }
+
+    class Pago {
+        +Integer id
+        +Float monto
+        +DateTime fecha_pago
+        +EstadoPago estado
+        +String referencia_externa
+        +esta_aprobado() bool
+    }
+
+    class SolicitudBaja {
+        +Integer id
+        +String justificacion
+        +EstadoSolicitudBaja estado
+        +aprobar(comentario)
+    }
+
+    class ListaEspera {
+        +Integer id
+        +DateTime fecha_inscripcion
+        +Integer posicion
+        +Boolean notificado
+        +notificar()
+    }
+
+    %% Relaciones
+    Socio "0..*" --> "1" PlanMembresia : tiene
+    Socio "1" --> "0..*" Reserva : realiza
+    Socio "1" --> "0..*" Pago : realiza
+    Socio "1" --> "0..*" SolicitudBaja : solicita
+    Socio "1" --> "0..*" ListaEspera : inscribe
+
+    Clase "0..*" --> "1" Entrenador : dictada por
+    Clase "0..*" --> "1" Horario : tiene
+    Clase "1" --> "0..*" Reserva : tiene
+    Clase "1" --> "0..*" ListaEspera : tiene
+    
+    PlanMembresia "0..*" -- "0..*" Clase : incluye > (plan_clase_association)
+    
+    Reserva --> Socio
+    Reserva --> Clase
+            </div>
+        </div>
+
+        <h2>2. Diagrama de Entidad Relación (DER)</h2>
+        <p class="description">Este diagrama muestra el esquema de la base de datos relacional, detallando las tablas, claves primarias (PK), claves foráneas (FK) y la cardinalidad de las relaciones.</p>
+        <div class="diagram-box">
+            <div class="mermaid">
+erDiagram
+    SOCIOS {
+        int id PK
+        string nombre
+        string apellido
+        string dni UK
+        string email UK
+        enum rol
+        enum estado_membresia
+        int plan_membresia_id FK
+    }
+
+    PLANES_MEMBRESIA {
+        int id PK
+        string titulo
+        float precio
+        int nivel
+        boolean activo
+    }
+
+    CLASES {
+        int id PK
+        string titulo
+        string descripcion
+        int cupo_maximo
+        int entrenador_id FK
+        int horario_id FK
+    }
+
+    ENTRENADORES {
+        int id PK
+        string nombre
+        string apellido
+        string email UK
+        string especialidad
+    }
+
+    HORARIOS {
+        int id PK
+        enum dia_semana
+        time hora_inicio
+        time hora_fin
+    }
+
+    RESERVAS {
+        int id PK
+        datetime fecha_reserva
+        boolean confirmada
+        datetime fecha_cancelacion
+        int socio_id FK
+        int clase_id FK
+    }
+
+    PAGOS {
+        int id PK
+        float monto
+        datetime fecha_pago
+        enum estado
+        string referencia_externa
+        int socio_id FK
+    }
+
+    SOLICITUDES_BAJA {
+        int id PK
+        text justificacion
+        datetime fecha_solicitud
+        enum estado
+        int socio_id FK
+    }
+
+    LISTA_ESPERA {
+        int id PK
+        datetime fecha_inscripcion
+        int posicion
+        boolean notificado
+        int socio_id FK
+        int clase_id FK
+    }
+
+    PLAN_CLASE_ASSOCIATION {
+        int plan_id PK, FK
+        int clase_id PK, FK
+    }
+
+    %% Relaciones
+    SOCIOS }|--|| PLANES_MEMBRESIA : "contrata"
+    SOCIOS ||--o{ RESERVAS : "realiza"
+    SOCIOS ||--o{ PAGOS : "efectua"
+    SOCIOS ||--o{ SOLICITUDES_BAJA : "genera"
+    SOCIOS ||--o{ LISTA_ESPERA : "espera en"
+
+    CLASES }|--|| ENTRENADORES : "asignada a"
+    CLASES }|--|| HORARIOS : "se dicta en"
+    CLASES ||--o{ RESERVAS : "recibe"
+    CLASES ||--o{ LISTA_ESPERA : "tiene"
+
+    PLANES_MEMBRESIA ||--o{ PLAN_CLASE_ASSOCIATION : "accede a"
+    CLASES ||--o{ PLAN_CLASE_ASSOCIATION : "incluida en"
+            </div>
+        </div>
+
+        <h2>3. Diagramas de Secuencia</h2>
+        <p class="description">Estos diagramas ilustran la interacción entre los objetos del sistema para llevar a cabo casos de uso específicos.</p>
+
+        <h3>3.1 Caso de Uso: Crear Reserva</h3>
+        <p class="description">Muestra el flujo cuando un socio intenta reservar una clase, incluyendo todas las validaciones de negocio.</p>
+        <div class="diagram-box">
+            <div class="mermaid">
+sequenceDiagram
+    actor Usuario as Socio
+    participant Controller as ReservaController
+    participant Service as ReservaService
+    participant RepoSocio as SocioRepository
+    participant RepoClase as ClaseRepository
+    participant RepoReserva as ReservaRepository
+    participant ModelReserva as Reserva
+
+    Usuario->>Controller: POST /reservas (clase_id)
+    Controller->>Service: crear_reserva(socio_id, clase_id)
+    
+    Service->>RepoSocio: get_by_id(socio_id)
+    RepoSocio-->>Service: socio
+    
+    alt Socio no existe o sin plan
+        Service-->>Controller: Error: Socio inválido
+        Controller-->>Usuario: 400 Bad Request
+    end
+
+    Service->>RepoClase: get_by_id(clase_id)
+    RepoClase-->>Service: clase
+
+    alt Clase no existe o inactiva
+        Service-->>Controller: Error: Clase inválida
+        Controller-->>Usuario: 400 Bad Request
+    end
+
+    Service->>Service: Validar acceso (plan, cupo, duplicados)
+    
+    alt Validaciones fallan
+        Service-->>Controller: Error: Validación fallida
+        Controller-->>Usuario: 400 Bad Request
+    end
+
+    Service->>ModelReserva: new Reserva(socio, clase)
+    ModelReserva-->>Service: instancia
+    
+    Service->>RepoReserva: save(reserva)
+    RepoReserva-->>Service: reserva_guardada
+    
+    Service-->>Controller: Success (reserva)
+    Controller-->>Usuario: 201 Created
+            </div>
+        </div>
+
+        <h3>3.2 Caso de Uso: Registrar Pago con Pasarela Externa</h3>
+        <p class="description">Muestra cómo el sistema interactúa con una pasarela de pagos externa (Proxy) para procesar un pago.</p>
+        <div class="diagram-box">
+            <div class="mermaid">
+sequenceDiagram
+    actor Usuario as Socio
+    participant Controller as PagoController
+    participant Service as PagoService
+    participant Proxy as PasarelaPagosProxy
+    participant RepoPago as PagoRepository
+    participant ModelPago as Pago
+
+    Usuario->>Controller: POST /pagos (mes, anio)
+    Controller->>Service: registrar_pago(socio_id, mes, anio)
+    
+    Service->>Service: Validar socio y plan
+    Service->>RepoPago: find_pagos_socio_periodo(...)
+    
+    alt Pago ya existe
+        Service-->>Controller: Error: Pago duplicado
+        Controller-->>Usuario: 400 Bad Request
+    end
+
+    Service->>Proxy: conectar()
+    alt Error conexión
+        Proxy-->>Service: False
+        Service-->>Controller: Error: Pasarela no disponible
+        Controller-->>Usuario: 503 Service Unavailable
+    end
+
+    Service->>Proxy: procesar_pago(socio_id, monto)
+    Proxy-->>Service: referencia_externa
+
+    alt Pago rechazado
+        Service-->>Controller: Error: Pago rechazado
+        Controller-->>Usuario: 400 Bad Request
+    end
+
+    Service->>ModelPago: new Pago(..., referencia)
+    Service->>RepoPago: save(pago)
+    RepoPago-->>Service: pago_guardado
+
+    Service-->>Controller: Success (pago)
+    Controller-->>Usuario: 201 Created
+            </div>
+        </div>
+
+        <h2>4. Diagramas de Estados</h2>
+        <p class="description">Representan los cambios de estado de entidades clave del sistema a lo largo de su ciclo de vida.</p>
+
+        <h3>4.1 Ciclo de Vida de un Pago</h3>
+        <div class="diagram-box">
+            <div class="mermaid">
+stateDiagram-v2
+    [*] --> PENDIENTE: Creación
+    PENDIENTE --> PROCESANDO: Enviar a Pasarela
+    PROCESANDO --> APROBADO: Confirmación Exitosa
+    PROCESANDO --> RECHAZADO: Fallo en Pasarela
+    APROBADO --> REEMBOLSADO: Solicitud Reembolso
+    RECHAZADO --> [*]
+    APROBADO --> [*]
+    REEMBOLSADO --> [*]
+            </div>
+        </div>
+
+        <h3>4.2 Ciclo de Vida de una Solicitud de Baja</h3>
+        <div class="diagram-box">
+            <div class="mermaid">
+stateDiagram-v2
+    [*] --> PENDIENTE: Socio solicita baja
+    PENDIENTE --> APROBADA: Admin aprueba
+    PENDIENTE --> RECHAZADA: Admin rechaza
+    
+    state APROBADA {
+        [*] --> BAJA_EFECTIVA
+        BAJA_EFECTIVA --> [*]
+    }
+    
+    APROBADA --> [*]
+    RECHAZADA --> [*]
+            </div>
+        </div>
+    </div>
+</body>
+</html>
