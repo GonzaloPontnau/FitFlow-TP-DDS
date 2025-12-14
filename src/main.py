@@ -56,6 +56,113 @@ def create_app():
     socketio.init_app(app)
     limiter.init_app(app)
     logger.info("Extensiones inicializadas (DB, SocketIO, Limiter)")
+
+    # Carga automática de datos de prueba si la BD está vacía (solo si no es testing)
+    if not settings.app.testing:
+        with app.app_context():
+            from src.models.plan_membresia import PlanMembresia
+            try:
+                # Verificar si hay planes (indicador de BD vacía)
+                if PlanMembresia.query.count() == 0:
+                    logger.info("Base de datos vacía detectada. Cargando datos de prueba...")
+                    from init_data import init_database
+                    # Ejecutamos la lógica de init_database pero adaptada para no recrear app
+                    # Importamos las funciones necesarias de init_data
+                    from src.models import Socio, Entrenador, Horario, Clase, Reserva
+                    from src.utils.enums import DiaSemana
+                    from datetime import time
+                    from src.config.database import db
+                    
+                    # --- COPIA DE LOGICA DE CARGA DE DATOS ---
+                    # Crear planes
+                    plan_basico = PlanMembresia("Plan Básico", "Acceso a gimnasio de lunes a viernes de 6:00 a 16:00 y clases grupales básicas", 32000.0, nivel=1)
+                    plan_premium = PlanMembresia("Plan Premium", "Acceso completo al gimnasio, todas las clases grupales, nutricionista y entrenador personal", 38000.0, nivel=2)
+                    plan_estudiante = PlanMembresia("Plan Elite", "Acceso completo a todas las clases, entrenador personal dedicado, spa y área VIP", 42000.0, nivel=3)
+                    db.session.add_all([plan_basico, plan_premium, plan_estudiante])
+                    
+                    # Crear entrenadores
+                    entrenador1 = Entrenador("Carlos", "Rodríguez", "Instructor de Spinning certificado con 5 años de experiencia")
+                    entrenador2 = Entrenador("María", "García", "Profesora de Yoga y Pilates")
+                    entrenador3 = Entrenador("Juan", "Martínez", "Entrenador Personal y CrossFit")
+                    entrenador4 = Entrenador("Ana", "López", "Instructora de Zumba y Baile")
+                    entrenador5 = Entrenador("Pedro", "Sánchez", "Profesor de Funcional y TRX")
+                    db.session.add_all([entrenador1, entrenador2, entrenador3, entrenador4, entrenador5])
+                    db.session.commit()
+                    
+                    # Crear horarios y clases
+                    horario1 = Horario(DiaSemana.LUNES, time(18, 0), time(19, 0))
+                    clase1 = Clase("Spinning Intenso", "Clase de spinning de alta intensidad para quemar calorías", 20, entrenador1, horario1, imagen_url="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop", video_url="https://www.youtube.com/watch?v=oAPCPjnU1wA")
+                    db.session.add(clase1)
+                    db.session.flush()
+                    clase1.planes = [plan_basico]
+
+                    horario2 = Horario(DiaSemana.MIERCOLES, time(10, 0), time(10, 45))
+                    clase2 = Clase("Yoga Matutino", "Sesión de yoga relajante para comenzar el día", 15, entrenador2, horario2, imagen_url="https://images.unsplash.com/photo-1544367563-12123d8965cd?q=80&w=1470&auto=format&fit=crop", video_url="https://www.youtube.com/watch?v=v7AYKMP6rOE")
+                    db.session.add(clase2)
+                    db.session.flush()
+                    clase2.planes = [plan_basico]
+
+                    horario3 = Horario(DiaSemana.MARTES, time(19, 0), time(20, 0))
+                    clase3 = Clase("CrossFit Avanzado", "Entrenamiento funcional de alta intensidad", 12, entrenador3, horario3, imagen_url="https://images.unsplash.com/photo-1517963879466-e9b5ce382569?q=80&w=1470&auto=format&fit=crop")
+                    db.session.add(clase3)
+                    db.session.flush()
+                    clase3.planes = [plan_premium]
+
+                    horario4 = Horario(DiaSemana.JUEVES, time(18, 30), time(19, 30))
+                    clase4 = Clase("Zumba Fitness", "Baile y ejercicio cardiovascular al ritmo de música latina", 25, entrenador4, horario4, imagen_url="https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=1470&auto=format&fit=crop")
+                    db.session.add(clase4)
+                    db.session.flush()
+                    clase4.planes = [plan_basico]
+
+                    horario5 = Horario(DiaSemana.VIERNES, time(17, 0), time(18, 0))
+                    clase5 = Clase("Funcional TRX", "Entrenamiento funcional con bandas de suspensión", 15, entrenador5, horario5, imagen_url="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=1470&auto=format&fit=crop")
+                    db.session.add(clase5)
+                    db.session.flush()
+                    clase5.planes = [plan_basico]
+
+                    horario6 = Horario(DiaSemana.LUNES, time(9, 0), time(10, 0))
+                    clase6 = Clase("Pilates", "Fortalecimiento del core y mejora de la postura", 18, entrenador2, horario6, imagen_url="https://images.unsplash.com/photo-1518609878373-06d740f60d8b?q=80&w=1470&auto=format&fit=crop")
+                    db.session.add(clase6)
+                    db.session.flush()
+                    clase6.planes = [plan_basico]
+
+                    horario7 = Horario(DiaSemana.SABADO, time(11, 0), time(12, 0))
+                    clase7 = Clase("Spinning VIP Weekend", "Clase exclusiva de spinning con instructor personalizado", 10, entrenador1, horario7, imagen_url="https://images.unsplash.com/photo-1594737625785-a6cbdabd333c?q=80&w=1470&auto=format&fit=crop")
+                    db.session.add(clase7)
+                    db.session.flush()
+                    clase7.planes = [plan_estudiante]
+
+                    db.session.commit()
+                    
+                    # Crear socios
+                    socio1 = Socio("Juan", "Pérez", "12345678", "juan.perez@example.com", plan_premium)
+                    socio2 = Socio("María", "González", "23456789", "maria.gonzalez@example.com", plan_basico)
+                    socio3 = Socio("Carlos", "Fernández", "34567890", "carlos.fernandez@example.com", plan_premium)
+                    socio4 = Socio("Ana", "Martínez", "45678901", "ana.martinez@example.com", plan_estudiante)
+                    socio5 = Socio("Luis", "Rodríguez", "56789012", "luis.rodriguez@example.com", plan_basico)
+                    socio6 = Socio("Laura", "López", "67890123", "laura.lopez@example.com", plan_premium)
+                    socio7 = Socio("Diego", "Sánchez", "78901234", "diego.sanchez@example.com", plan_estudiante)
+                    socio8 = Socio("Sofía", "Ramírez", "89012345", "sofia.ramirez@example.com", plan_basico)
+                    db.session.add_all([socio1, socio2, socio3, socio4, socio5, socio6, socio7, socio8])
+                    db.session.commit()
+                    
+                    # Crear reservas
+                    reserva1 = Reserva(socio1, clase1)
+                    reserva2 = Reserva(socio2, clase2)
+                    reserva3 = Reserva(socio3, clase3)
+                    reserva4 = Reserva(socio4, clase4)
+                    reserva5 = Reserva(socio1, clase2)
+                    reserva6 = Reserva(socio6, clase1)
+                    reserva7 = Reserva(socio6, clase3)
+                    reserva8 = Reserva(socio5, clase4)
+                    reserva9 = Reserva(socio7, clase2)
+                    reserva10 = Reserva(socio8, clase6)
+                    db.session.add_all([reserva1, reserva2, reserva3, reserva4, reserva5, reserva6, reserva7, reserva8, reserva9, reserva10])
+                    db.session.commit()
+                    
+                    logger.info("Datos de prueba cargados exitosamente")
+            except Exception as e:
+                logger.error(f"Error cargando datos de prueba: {e}")
     
     # Registrar blueprints (controladores REST)
     app.register_blueprint(socio_bp)
