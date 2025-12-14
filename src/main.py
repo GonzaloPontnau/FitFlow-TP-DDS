@@ -352,16 +352,21 @@ def init_database():
         # Crear planes de membresía
         plan_basico = PlanMembresia(
             "Plan Básico",
-            "Acceso a gimnasio y clases grupales básicas",
-            10000.0
+            "Acceso a gimnasio de lunes a viernes de 6:00 a 16:00 y clases grupales básicas",
+            32000.0
         )
         plan_premium = PlanMembresia(
             "Plan Premium",
-            "Acceso completo a gimnasio y todas las clases",
-            20000.0
+            "Acceso completo al gimnasio, todas las clases grupales, nutricionista y entrenador personal",
+            38000.0
+        )
+        plan_estudiante = PlanMembresia(
+            "Plan Elite",
+            "Acceso completo a todas las clases, entrenador personal dedicado, spa y área VIP",
+            42000.0
         )
         
-        db.session.add_all([plan_basico, plan_premium])
+        db.session.add_all([plan_basico, plan_premium, plan_estudiante])
         db.session.commit()
         logger.info("Planes de membresía creados")
         
