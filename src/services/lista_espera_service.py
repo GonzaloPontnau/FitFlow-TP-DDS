@@ -341,7 +341,7 @@ class ListaEsperaService:
         # Obtener todas las clases con lista de espera habilitada
         from src.repositories.clase_repository import ClaseRepository
         clase_repo = ClaseRepository()
-        clases_con_lista = clase_repo.find_by_field('tiene_lista_espera', True)
+        clases_con_lista = clase_repo.find_con_lista_espera_habilitada()
         
         for clase in clases_con_lista:
             # Si la clase tiene cupo disponible y hay personas en lista de espera

@@ -11,6 +11,15 @@
                 <input type="checkbox" id="incluirExternas" onchange="cargarCalendario()" checked>
                 Incluir clases externas
             </label>
+            <label style="display: inline-block;">
+                <input type="checkbox" id="verSinCupo" onchange="cargarCalendario()" checked>
+                Ver clases sin cupo
+            </label>
+        </div>
+        <div style="margin-top: 1rem;">
+            <label style="margin-right: 0.5rem;">Desde:</label>
+            <input type="date" id="fechaDesde" value="2025-12-16" onchange="cargarCalendario()" class="form-control"
+                style="display: inline-block; width: auto;">
         </div>
     </div>
 
@@ -29,13 +38,22 @@
     async function cargarCalendario() {
         try {
             const incluirExternas = document.getElementById('incluirExternas').checked;
-            // Usar modo=ocupado para ver todas las clases, modo=normal para solo con cupo
-            const modo = 'ocupado';
-            const response = await apiRequest(`/api/calendario?modo=${modo}`);
+            const verSinCupo = document.getElementById('verSinCupo').checked;
+            const fechaDesde = document.getElementById('fechaDesde').value;
+
+            // Modo OCUPADO muestra todas (con y sin cupo), NORMAL solo con cupo
+            const modo = verSinCupo ? 'ocupado' : 'normal';
+
+            let url = `/api/calendario?modo=${modo}`;
+            if (fechaDesde) {
+                url += `&fecha_desde=${fechaDesde}`;
+            }
+
+            const response = await apiRequest(url);
             const container = document.getElementById('calendario-content');
 
             let eventos = response.data || [];
-            
+
             // Filtrar clases externas si el checkbox no esta marcado
             if (!incluirExternas) {
                 eventos = eventos.filter(e => e.tipo !== 'externa');

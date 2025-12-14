@@ -64,3 +64,13 @@ class ClaseRepository(BaseRepository[Clase]):
         """
         clases_activas = self.get_clases_activas()
         return [clase for clase in clases_activas if clase.tiene_cupo_disponible()]
+
+    def find_con_lista_espera_habilitada(self) -> List[Clase]:
+        """
+        Encuentra todas las clases que tienen lista de espera habilitada.
+        
+        Returns:
+            Lista de clases con lista de espera
+        """
+        return self.session.query(Clase).filter_by(activa=True, tiene_lista_espera=True).all()
+
