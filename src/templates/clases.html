@@ -213,7 +213,7 @@
     let entrenadores = [];
     let horarios = [];
     let planes = [];
-    const isAdmin = {{ 'true' if session.get('admin_logged_in') else 'false' }};
+    const isAdmin = "{{ 'true' if session.get('admin_logged_in') else 'false' }}" === "true";
 
     // Cargar entrenadores
     async function cargarEntrenadores() {
@@ -619,6 +619,11 @@
             hora_inicio: formData.get('hora_inicio'),
             hora_fin: formData.get('hora_fin')
         };
+
+        if (horario.hora_inicio >= horario.hora_fin) {
+            showAlert('La hora de fin debe ser posterior a la hora de inicio', 'error');
+            return;
+        }
 
         try {
             await apiRequest('/api/clases/horarios', {

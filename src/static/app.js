@@ -21,7 +21,7 @@ async function apiRequest(url, options = {}) {
 
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.error?.message || 'Error en la petición');
+            throw new Error(error.message || error.error?.message || 'Error en la petición');
         }
 
         return await response.json();
