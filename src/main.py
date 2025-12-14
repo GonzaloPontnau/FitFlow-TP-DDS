@@ -163,6 +163,39 @@ def create_app():
                     logger.info("Datos de prueba cargados exitosamente")
             except Exception as e:
                 logger.error(f"Error cargando datos de prueba: {e}")
+
+            # Actualizar imágenes faltantes en clases existentes
+            try:
+                from src.models.clase import Clase
+                clases_updates = {
+                    "Yoga Matutino": {
+                        "imagen_url": "https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?q=80&w=1469&auto=format&fit=crop",
+                        "video_url": "https://www.youtube.com/watch?v=v7AYKMP6rOE"
+                    },
+                    "CrossFit Avanzado": {
+                        "imagen_url": "https://images.unsplash.com/photo-1534367507873-d2d7e24c797f?q=80&w=1470&auto=format&fit=crop"
+                    }
+                }
+                
+                for titulo, data in clases_updates.items():
+                    clase = Clase.query.filter_by(titulo=titulo).first()
+                    if clase:
+                        changed = False
+                        if not clase.imagen_url and "imagen_url" in data:
+                            clase.imagen_url = data["imagen_url"]
+                            changed = True
+                        if not clase.video_url and "video_url" in data:
+                            clase.video_url = data["video_url"]
+                            changed = True
+                        
+                        if changed:
+                            db.session.add(clase)
+                            logger.info(f"Actualizada imagen/video para clase: {titulo}")
+                
+                if db.session.dirty:
+                    db.session.commit()
+            except Exception as e:
+                logger.error(f"Error actualizando imágenes de clases: {e}")
     
     # Registrar blueprints (controladores REST)
     app.register_blueprint(socio_bp)
