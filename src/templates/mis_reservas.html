@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Mis Reservas - FitFlow{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Mis Reservas</h2>
+    </div>
+
+    <div id="reservas-list">
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Cargando reservas...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const socioId = {{ current_user.id if current_user and not current_user.is_admin else 'null' }};
+
+    function capitalize(str) {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    async function cargarReservas() {
+        if (!socioId) {
+            document.getElementById('reservas-list').innerHTML =
+                '<div class="alert alert-error">Debe iniciar sesión para ver sus reservas</div>';
+            return;
+        }
+
+        try {
+            const data = await apiRequest(`/api/reservas/socio/${socioId}`);
+            const container = document.getElementById('reservas-list');
+            const reservas = data.data || [];
+
+            if (reservas.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                        <p style="font-size: 1.2rem; margin-bottom: 1rem;">No tienes reservas activas</p>
+                        <a href="/clases" class="btn btn-primary">Ver Clases Disponibles</a>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="grid">
+                    ${reservas.map(reserva => `
+                        <div class="grid-item">
+                            <h3 style="margin-bottom: 0.5rem; color: var(--primary-color);">
+                                ${reserva.clase_titulo}
+                            </h3>
+                            
+                            <div style="margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <span><strong>Día:</strong></span>
+                                    <span>${capitalize(reserva.clase_dia || 'No disponible')}</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <span><strong>Hora:</strong></span>
+                                    <span>${reserva.clase_hora_inicio || 'No disponible'}</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <span><strong>Duración:</strong></span>
+                                    <span>${reserva.clase_duracion ? reserva.clase_duracion + ' min' : 'No disponible'}</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <span><strong>Reservado el:</strong></span>
+                                    <span>${new Date(reserva.fecha_reserva).toLocaleDateString('es-AR')}</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <span><strong>Estado:</strong></span>
+                                    <span class="badge ${reserva.confirmada ? 'badge-success' : 'badge-warning'}">
+                                        ${reserva.confirmada ? 'Confirmada' : 'Pendiente'}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+                                <button class="btn btn-danger btn-sm" onclick="cancelarReserva(${reserva.id})">
+                                    Cancelar Reserva
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        } catch (error) {
+            console.error('Error cargando reservas:', error);
+            document.getElementById('reservas-list').innerHTML =
+                '<div class="alert alert-error">Error al cargar reservas</div>';
+        }
+    }
+
+    async function cancelarReserva(reservaId) {
+        if (!confirm('¿Está seguro de cancelar esta reserva?')) {
+            return;
+        }
+
+        try {
+            await apiRequest(`/api/reservas/${reservaId}`, {
+                method: 'DELETE'
+            });
+
+            showAlert('Reserva cancelada exitosamente', 'success');
+            cargarReservas();
+        } catch (error) {
+            console.error('Error cancelando reserva:', error);
+            showAlert(error.message || 'Error al cancelar reserva', 'error');
+        }
+    }
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarReservas();
+    });
+</script>
+{% endblock %}

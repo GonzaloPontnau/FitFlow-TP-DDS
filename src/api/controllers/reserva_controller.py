@@ -188,6 +188,9 @@ def listar_reservas_socio(socio_id: int):
                 'id': r.id,
                 'clase_id': r.clase_id,
                 'clase_titulo': r.clase.titulo,
+                'clase_dia': r.clase.horario.dia_semana.value if r.clase.horario else None,
+                'clase_hora_inicio': r.clase.horario.hora_inicio.strftime('%H:%M') if r.clase.horario else None,
+                'clase_duracion': r.clase.horario.duracion_minutos() if r.clase.horario else None,
                 'fecha_reserva': r.fecha_reserva.isoformat(),
                 'confirmada': r.confirmada
             }
