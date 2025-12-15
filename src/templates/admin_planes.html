@@ -35,6 +35,15 @@
                         class="form-control">
                 </div>
 
+                <div class="form-group">
+                    <label for="nivel">Nivel del Plan *</label>
+                    <select id="nivel" name="nivel" required class="form-control">
+                        <option value="1">Nivel 1 - Básico</option>
+                        <option value="2">Nivel 2 - Premium</option>
+                        <option value="3">Nivel 3 - Elite</option>
+                    </select>
+                </div>
+
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Guardar</button>
                     <button type="button" class="btn btn-secondary" onclick="ocultarFormulario()">Cancelar</button>
@@ -218,6 +227,7 @@
             document.getElementById('titulo').value = plan.titulo;
             document.getElementById('descripcion').value = plan.descripcion || '';
             document.getElementById('precio').value = plan.precio;
+            document.getElementById('nivel').value = plan.nivel || 1;
         } else {
             document.getElementById('plan-form').reset();
             document.getElementById('plan-id').value = '';
@@ -241,7 +251,8 @@
         const data = {
             titulo: document.getElementById('titulo').value,
             descripcion: document.getElementById('descripcion').value,
-            precio: parseFloat(document.getElementById('precio').value)
+            precio: parseFloat(document.getElementById('precio').value),
+            nivel: parseInt(document.getElementById('nivel').value)
         };
 
         try {

@@ -35,6 +35,7 @@ def listar_planes():
                 'titulo': plan.titulo,
                 'descripcion': plan.descripcion,
                 'precio': plan.precio,
+                'nivel': plan.nivel,
                 'cantidad_clases': len(plan.clases),
                 'activo': plan.activo
             }
@@ -71,6 +72,7 @@ def obtener_plan(plan_id: int):
             'titulo': plan.titulo,
             'descripcion': plan.descripcion,
             'precio': plan.precio,
+            'nivel': plan.nivel,
             'activo': plan.activo,
             'clases': [
                 {
@@ -97,6 +99,7 @@ def crear_plan():
         titulo: Nombre del plan
         descripcion: Descripción del plan
         precio: Precio mensual
+        nivel: Nivel del plan (1, 2 o 3) - opcional, default 1
     
     Returns:
         201: Plan creado
@@ -104,10 +107,13 @@ def crear_plan():
     """
     data = request.get_json()
     
+    nivel = data.get('nivel', 1)
+    
     plan = plan_service.crear_plan(
         titulo=data['titulo'],
         descripcion=data['descripcion'],
-        precio=data['precio']
+        precio=data['precio'],
+        nivel=nivel
     )
     
     logger.info(f"Plan creado: {plan.id} - {plan.titulo}")
@@ -119,7 +125,8 @@ def crear_plan():
             'id': plan.id,
             'titulo': plan.titulo,
             'descripcion': plan.descripcion,
-            'precio': plan.precio
+            'precio': plan.precio,
+            'nivel': plan.nivel
         }
     }), 201
 
@@ -137,6 +144,7 @@ def actualizar_plan(plan_id: int):
         titulo: Nuevo nombre
         descripcion: Nueva descripción
         precio: Nuevo precio
+        nivel: Nuevo nivel (1, 2 o 3)
         activo: Estado del plan
     
     Returns:
@@ -164,6 +172,13 @@ def actualizar_plan(plan_id: int):
                 'message': 'El precio debe ser mayor a 0'
             }), 400
         plan.precio = data['precio']
+    if 'nivel' in data:
+        if data['nivel'] not in [1, 2, 3]:
+            return jsonify({
+                'success': False,
+                'message': 'El nivel debe ser 1, 2 o 3'
+            }), 400
+        plan.nivel = data['nivel']
     if 'activo' in data:
         plan.activo = bool(data['activo'])
     
@@ -179,6 +194,7 @@ def actualizar_plan(plan_id: int):
             'titulo': plan.titulo,
             'descripcion': plan.descripcion,
             'precio': plan.precio,
+            'nivel': plan.nivel,
             'activo': plan.activo
         }
     }), 200
