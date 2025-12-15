@@ -35,6 +35,7 @@ def listar_planes():
                 'titulo': plan.titulo,
                 'descripcion': plan.descripcion,
                 'precio': plan.precio,
+                'nivel': plan.nivel,
                 'cantidad_clases': len(plan.clases),
                 'activo': plan.activo
             }
@@ -71,6 +72,7 @@ def obtener_plan(plan_id: int):
             'titulo': plan.titulo,
             'descripcion': plan.descripcion,
             'precio': plan.precio,
+            'nivel': plan.nivel,
             'activo': plan.activo,
             'clases': [
                 {
