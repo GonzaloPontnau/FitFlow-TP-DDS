@@ -334,6 +334,13 @@ def create_app():
         """Página pública para solicitar baja"""
         return render_template('solicitar_baja.html')
     
+    @app.route('/mis-reservas')
+    def mis_reservas_page():
+        """Página de reservas del socio logueado"""
+        if not session.get('socio_id'):
+            return redirect(url_for('login_page'))
+        return render_template('mis_reservas.html')
+    
     # ===== PAGINAS PROTEGIDAS (requieren login de admin) =====
     @app.route('/socios')
     @admin_required
