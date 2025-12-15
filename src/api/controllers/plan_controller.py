@@ -35,7 +35,6 @@ def listar_planes():
                 'titulo': plan.titulo,
                 'descripcion': plan.descripcion,
                 'precio': plan.precio,
-                'nivel': plan.nivel,
                 'cantidad_clases': len(plan.clases),
                 'activo': plan.activo
             }
