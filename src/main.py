@@ -565,17 +565,20 @@ def init_database():
         plan_basico = PlanMembresia(
             "Plan Básico",
             "Acceso a gimnasio de lunes a viernes de 6:00 a 16:00 y clases grupales básicas",
-            32000.0
+            32000.0,
+            nivel=1
         )
         plan_premium = PlanMembresia(
             "Plan Premium",
             "Acceso completo al gimnasio, todas las clases grupales, nutricionista y entrenador personal",
-            38000.0
+            38000.0,
+            nivel=2
         )
         plan_estudiante = PlanMembresia(
             "Plan Elite",
             "Acceso completo a todas las clases, entrenador personal dedicado, spa y área VIP",
-            42000.0
+            42000.0,
+            nivel=3
         )
         
         db.session.add_all([plan_basico, plan_premium, plan_estudiante])
