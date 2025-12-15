@@ -167,13 +167,30 @@ def create_app():
             # Actualizar imágenes faltantes en clases existentes
             try:
                 from src.models.clase import Clase
+                from src.config.database import db
                 clases_updates = {
+                    "Spinning Intenso": {
+                        "imagen_url": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop",
+                        "video_url": "https://www.youtube.com/watch?v=oAPCPjnU1wA"
+                    },
                     "Yoga Matutino": {
                         "imagen_url": "https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?q=80&w=1469&auto=format&fit=crop",
                         "video_url": "https://www.youtube.com/watch?v=v7AYKMP6rOE"
                     },
                     "CrossFit Avanzado": {
                         "imagen_url": "https://images.unsplash.com/photo-1534367507873-d2d7e24c797f?q=80&w=1470&auto=format&fit=crop"
+                    },
+                    "Zumba Fitness": {
+                        "imagen_url": "https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=1470&auto=format&fit=crop"
+                    },
+                    "Funcional TRX": {
+                        "imagen_url": "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=1470&auto=format&fit=crop"
+                    },
+                    "Pilates": {
+                        "imagen_url": "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?q=80&w=1470&auto=format&fit=crop"
+                    },
+                    "Spinning VIP Weekend": {
+                        "imagen_url": "https://images.unsplash.com/photo-1594737625785-a6cbdabd333c?q=80&w=1470&auto=format&fit=crop"
                     }
                 }
                 
