@@ -11,7 +11,7 @@ class PlanService:
     def __init__(self):
         self.plan_repo = PlanRepository()
     
-    def crear_plan(self, titulo: str, descripcion: str, precio: float) -> PlanMembresia:
+    def crear_plan(self, titulo: str, descripcion: str, precio: float, nivel: int = 1) -> PlanMembresia:
         """
         Crea un nuevo plan de membresía.
         
@@ -19,6 +19,7 @@ class PlanService:
             titulo: Nombre del plan
             descripcion: Descripción del plan
             precio: Precio mensual
+            nivel: Nivel jerárquico del plan (1=Básico, 2=Premium, 3=Elite)
             
         Returns:
             El plan creado
@@ -32,6 +33,9 @@ class PlanService:
         if len(titulo.strip()) < 3:
             raise ValueError("El título debe tener al menos 3 caracteres")
         
+        if nivel not in [1, 2, 3]:
+            raise ValueError("El nivel debe ser 1, 2 o 3")
+        
         # Verificar que no exista un plan con el mismo título
         plan_existente = self.plan_repo.find_by_titulo(titulo)
         if plan_existente:
@@ -40,7 +44,8 @@ class PlanService:
         nuevo_plan = PlanMembresia(
             titulo=titulo,
             descripcion=descripcion,
-            precio=precio
+            precio=precio,
+            nivel=nivel
         )
         
         return self.plan_repo.create(nuevo_plan)
