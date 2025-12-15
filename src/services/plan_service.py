@@ -33,8 +33,8 @@ class PlanService:
         if len(titulo.strip()) < 3:
             raise ValueError("El título debe tener al menos 3 caracteres")
         
-        if nivel not in [1, 2, 3]:
-            raise ValueError("El nivel debe ser 1, 2 o 3")
+        if nivel < 1:
+            raise ValueError("El nivel debe ser mayor o igual a 1")
         
         # Verificar que no exista un plan con el mismo título
         plan_existente = self.plan_repo.find_by_titulo(titulo)

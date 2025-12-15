@@ -173,10 +173,10 @@ def actualizar_plan(plan_id: int):
             }), 400
         plan.precio = data['precio']
     if 'nivel' in data:
-        if data['nivel'] not in [1, 2, 3]:
+        if data['nivel'] < 1:
             return jsonify({
                 'success': False,
-                'message': 'El nivel debe ser 1, 2 o 3'
+                'message': 'El nivel debe ser mayor o igual a 1'
             }), 400
         plan.nivel = data['nivel']
     if 'activo' in data:

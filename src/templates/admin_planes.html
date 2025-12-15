@@ -37,11 +37,10 @@
 
                 <div class="form-group">
                     <label for="nivel">Nivel del Plan *</label>
-                    <select id="nivel" name="nivel" required class="form-control">
-                        <option value="1">Nivel 1 - Básico</option>
-                        <option value="2">Nivel 2 - Premium</option>
-                        <option value="3">Nivel 3 - Elite</option>
-                    </select>
+                    <input type="number" id="nivel" name="nivel" required min="1" value="1" placeholder="Ej: 1, 2, 3..."
+                        class="form-control">
+                    <small style="color: var(--text-muted);">Niveles más altos acceden a clases de niveles
+                        inferiores</small>
                 </div>
 
                 <div class="form-actions">
