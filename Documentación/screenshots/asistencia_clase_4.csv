@@ -1,0 +1,7 @@
+Socio ID,Nombre,Apellido,DNI,Email,Estado Reserva,Fecha Reserva
+4,Ana,Martínez,45678901,ana.martinez@example.com,Confirmada,2025-12-14 22:46:34
+5,Luis,Rodríguez,56789012,luis.rodriguez@example.com,Confirmada,2025-12-14 22:46:34
+1,Juan,Pérez,12345678,juan.perez@example.com,Cancelada,2025-12-15 19:00:33
+1,Juan,Pérez,12345678,juan.perez@example.com,Cancelada,2025-12-15 19:47:38
+1,Juan,Pérez,12345678,juan.perez@example.com,Cancelada,2025-12-15 19:47:55
+1,Juan,Pérez,12345678,juan.perez@example.com,Confirmada,2025-12-15 21:05:42

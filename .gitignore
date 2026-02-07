@@ -57,3 +57,5 @@ target/
 *.class
 *.jar
 *.war
+
+.github/agents

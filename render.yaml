@@ -2,12 +2,8 @@
 # FitFlow - Render Blueprint
 # One-click deployment configuration
 # ================================
-
-databases:
-  - name: fitflow-db
-    databaseName: fitflow
-    user: fitflow_user
-    plan: free
+# Usa SQLite (filesystem efímero en Render free tier).
+# Los datos se auto-cargan en cada deploy gracias a create_app().
 
 services:
   - type: web
@@ -18,10 +14,6 @@ services:
     startCommand: gunicorn --worker-class gevent -w 1 -b 0.0.0.0:$PORT 'src.main:create_app()'
     healthCheckPath: /health
     envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: fitflow-db
-          property: connectionString
       - key: SECRET_KEY
         generateValue: true
       - key: DEBUG
