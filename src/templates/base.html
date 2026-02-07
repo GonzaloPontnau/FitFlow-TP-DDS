@@ -56,6 +56,7 @@
                     <a href="/logout" class="btn-logout">Cerrar Sesion</a>
                 </li>
                 {% elif current_user %}
+                <li><a href="/mis-reservas">Reservas</a></li>
                 <li><a href="/solicitar-baja">Mis Datos</a></li>
                 <li class="nav-user">
                     <span class="user-badge">{{ current_user.name }}</span>

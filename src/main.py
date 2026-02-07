@@ -167,13 +167,30 @@ def create_app():
             # Actualizar imágenes faltantes en clases existentes
             try:
                 from src.models.clase import Clase
+                from src.config.database import db
                 clases_updates = {
+                    "Spinning Intenso": {
+                        "imagen_url": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop",
+                        "video_url": "https://www.youtube.com/watch?v=oAPCPjnU1wA"
+                    },
                     "Yoga Matutino": {
                         "imagen_url": "https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?q=80&w=1469&auto=format&fit=crop",
                         "video_url": "https://www.youtube.com/watch?v=v7AYKMP6rOE"
                     },
                     "CrossFit Avanzado": {
                         "imagen_url": "https://images.unsplash.com/photo-1534367507873-d2d7e24c797f?q=80&w=1470&auto=format&fit=crop"
+                    },
+                    "Zumba Fitness": {
+                        "imagen_url": "https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=1470&auto=format&fit=crop"
+                    },
+                    "Funcional TRX": {
+                        "imagen_url": "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=1470&auto=format&fit=crop"
+                    },
+                    "Pilates": {
+                        "imagen_url": "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?q=80&w=1470&auto=format&fit=crop"
+                    },
+                    "Spinning VIP Weekend": {
+                        "imagen_url": "https://images.unsplash.com/photo-1594737625785-a6cbdabd333c?q=80&w=1470&auto=format&fit=crop"
                     }
                 }
                 
@@ -316,6 +333,13 @@ def create_app():
     def solicitar_baja_page():
         """Página pública para solicitar baja"""
         return render_template('solicitar_baja.html')
+    
+    @app.route('/mis-reservas')
+    def mis_reservas_page():
+        """Página de reservas del socio logueado"""
+        if not session.get('socio_id'):
+            return redirect(url_for('login_page'))
+        return render_template('mis_reservas.html')
     
     # ===== PAGINAS PROTEGIDAS (requieren login de admin) =====
     @app.route('/socios')
@@ -548,17 +572,20 @@ def init_database():
         plan_basico = PlanMembresia(
             "Plan Básico",
             "Acceso a gimnasio de lunes a viernes de 6:00 a 16:00 y clases grupales básicas",
-            32000.0
+            32000.0,
+            nivel=1
         )
         plan_premium = PlanMembresia(
             "Plan Premium",
             "Acceso completo al gimnasio, todas las clases grupales, nutricionista y entrenador personal",
-            38000.0
+            38000.0,
+            nivel=2
         )
         plan_estudiante = PlanMembresia(
             "Plan Elite",
             "Acceso completo a todas las clases, entrenador personal dedicado, spa y área VIP",
-            42000.0
+            42000.0,
+            nivel=3
         )
         
         db.session.add_all([plan_basico, plan_premium, plan_estudiante])
